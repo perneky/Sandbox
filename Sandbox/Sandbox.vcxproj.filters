@@ -1,0 +1,575 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="PCH">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Platform">
+      <UniqueIdentifier>{d892513f-5b5d-4515-9d57-f30f55cc1a9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{22009dc7-bbc8-4546-a74c-a16970455cb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform\Windows">
+      <UniqueIdentifier>{5ad978f5-ed8e-4498-87e2-ed88425edd94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\D3D12">
+      <UniqueIdentifier>{bc1870ea-999b-46b8-8b40-e32cb7d548ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{a0414f7b-7ee8-4a38-a52b-352f98998526}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\D3D12\Shaders">
+      <UniqueIdentifier>{e04440bb-53fc-4d77-9a3e-71825031b405}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\D3D12\Shaders\RootSignatures">
+      <UniqueIdentifier>{2a3da561-52df-4868-9ff5-ad2a991ebe19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\D3D12\DirectXTex">
+      <UniqueIdentifier>{69bf85a9-07bd-4cc8-b667-c76ea77ae7d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\TinyXML2">
+      <UniqueIdentifier>{64ae5b05-f8cc-466e-b7be-3beaae5c63ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\D3D12\D3D12MemoryAllocator">
+      <UniqueIdentifier>{28a023d9-6a7c-442b-ad68-00a7d1c8c815}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{77bca5c2-2065-4879-8303-4622095cd0ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{404d117a-1e7c-4a56-b5a8-b251f776a3b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Debug">
+      <UniqueIdentifier>{6029dd81-e67c-4e85-81a8-c6ba977c18c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\TextureStreamers">
+      <UniqueIdentifier>{ef3d1790-bd58-49a1-a264-02d6bb2784c8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Sandbox.cpp" />
+    <ClCompile Include="PCH\PCH.cpp">
+      <Filter>PCH</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform\Windows\WinAPIWindow.cpp">
+      <Filter>Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DAdapter.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DCommandQueue.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DDevice.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DFactory.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DSwapchain.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\RenderManager.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DCommandAllocator.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\CommandAllocatorPool.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\CommandQueueManager.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DCommandList.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DResource.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DPipelineState.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\Mesh.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DDescriptorHeap.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DRTBottomLevelAccelerator.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DRTTopLevelAccelerator.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\DirectXTex\DDSTextureLoader\DDSTextureLoader12.cpp">
+      <Filter>Render\D3D12\DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\tinyxml2\tinyxml2.cpp">
+      <Filter>Common\TinyXML2</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DResourceDescriptor.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DComputeShader.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\Upscaling.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\DLSSUpscaling.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DGPUTimeQuery.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\MeasureCPUTime.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\External\D3D12MemoryAllocator\D3D12MemAlloc.cpp">
+      <Filter>Render\D3D12\D3D12MemoryAllocator</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DCommandSignature.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Node.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Camera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\Device.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DRTShaders.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Debug\DebugWindow.cpp">
+      <Filter>UI\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\TextureStreamers\TextureStreamer_Immediate.cpp">
+      <Filter>Render\TextureStreamers</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\TextureStreamers\TextureStreamer_Tiled.cpp">
+      <Filter>Render\TextureStreamers</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DTileHeap.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\CPUFileLoader.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Render\D3D12\NVDenoiser.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PCH\PCH.h">
+      <Filter>PCH</Filter>
+    </ClInclude>
+    <ClInclude Include="PCH\WindowsPCH.h">
+      <Filter>PCH</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Window.h">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Windows\WinAPIWindow.h">
+      <Filter>Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Adapter.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\CommandQueue.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Device.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Factory.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Swapchain.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DAdapter.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DCommandQueue.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DDevice.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DFactory.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DSwapchain.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\RenderManager.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Types.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\Conversion.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\CommandAllocator.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DCommandAllocator.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\CommandAllocatorPool.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\CommandQueueManager.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\CommandList.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DCommandList.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Color.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Resource.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DResource.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\PipelineState.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DPipelineState.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Mesh.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Files.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DDescriptorHeap.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Utils.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DRTBottomLevelAccelerator.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\RTBottomLevelAccelerator.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\RTTopLevelAccelerator.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DRTTopLevelAccelerator.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Signal.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Finally.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\DirectXTex\DDSTextureLoader\DDSTextureLoader12.h">
+      <Filter>Render\D3D12\DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\tinyxml2\tinyxml2.h">
+      <Filter>Common\TinyXML2</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\ShaderValues.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DUtils.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\ShaderStructures.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\ResourceDescriptor.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DResourceDescriptor.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\ComputeShader.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DComputeShader.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\ModelFeatures.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Upscaling.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\DLSSUpscaling.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Halton.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\GPUTimeQuery.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DGPUTimeQuery.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\MeasureCPUTime.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\External\D3D12MemoryAllocator\D3D12MemAlloc.h">
+      <Filter>Render\D3D12\D3D12MemoryAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\AllocatedResource.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Sandbox.h" />
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\CommandSignature.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DCommandSignature.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Node.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Camera.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\GIVolume.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DRTShaders.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\RTShaders.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\UIWindow.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Debug\DebugWindow.h">
+      <Filter>UI\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\TextureStreamers\TextureStreamer_Immediate.h">
+      <Filter>Render\TextureStreamers</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\TextureStreamers\TextureStreamer_Tiled.h">
+      <Filter>Render\TextureStreamers</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\TileHeap.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DTileHeap.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\TextureStreamers\TFFFormat.h">
+      <Filter>Render\TextureStreamers</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\TextureStreamers\TextureStreamer.h">
+      <Filter>Render\TextureStreamers</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\FileLoader.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\CPUFileLoader.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\Denoiser.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\NVDenoiser.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Render\D3D12\Shaders\RootSignatures\GIProbe.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RootSignatures\ToneMapping.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RootSignatures\ModelDepth.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RootSignatures\ModelTranslucent.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RootSignatures\Sky.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="packages.config" />
+    <None Include="Render\D3D12\Shaders\Utils.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\PBRUtils.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\Lighting.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RTUtils.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\Reflection.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\TextureSampling.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RootSignatures\ScreenQuad.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RootSignatures\DSTransferBufferDebug.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RootSignatures\DirectLighting.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\RootSignatures\ShaderStructures.hlsli">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\AttributeExtractor.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\AlphaTestInstance.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\GetAttributes.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+    <None Include="Render\D3D12\Shaders\CalcSurfaceNormal.hlsli">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Render\D3D12\Shaders\TraceReflection.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\PrepareDenoiser.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\TraceAmbientOcclusion.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\AdaptExposure.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Blur.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\BlurBloom.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Culling.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\PrepareCulling.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DirectLightingPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DirectLightingVS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Downsample.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Downsample4.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Downsample4WithLuminanceFilter.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DownsampleBloom.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DownsampleMSAA4.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DSTransferBufferDebugPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DSTransferBufferDebugVS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ExtractBloom.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\GenerateHistogram.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelDepthAtestPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelDepthPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelDepthVS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelReflectionPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelTranslucentVS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelTranslucentPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ScreenQuadPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ScreenQuadVS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\SkyPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\SkyVS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\SpecBRDFLUT.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ToneMappingPS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ToneMappingVS.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\TraceShadow.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\UpsampleAndBlurBloom.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceReflection_sig.hlsl">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceAmbientOcclusion_sig.hlsl">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceShadow_sig.hlsl">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

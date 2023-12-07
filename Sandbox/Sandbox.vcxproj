@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{C57C8B94-31F2-4613-8C5B-BF07EBC76347}</ProjectGuid>
+    <RootNamespace>Sandbox</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <IncludePath>$(SolutionDir)External\Agility\include\d3dx12;$(SolutionDir)External\Agility\include;$(SolutionDir)External\NVIDIAAftermath\include;$(SolutionDir)External\assimp\inc;$(SolutionDir)External\RTXGI\include;$(SolutionDir)External\DXC;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)External\NVIDIAAftermath\lib\x64;$(SolutionDir)External\assimp\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <IncludePath>$(SolutionDir)External\Agility\include\d3dx12;$(SolutionDir)External\Agility\include;$(SolutionDir)External\NVIDIAAftermath\include;$(SolutionDir)External\assimp\inc;$(SolutionDir)External\RTXGI\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)External\NVIDIAAftermath\lib\x64;$(SolutionDir)External\assimp\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH/PCH.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>PCH/PCH.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)External;$(SolutionDir)External\DirectStorage\include;$(SolutionDir)External\EABase-2.09.05\include\Common;$(SolutionDir)External\EAAssert\include;$(SolutionDir)External\EASTL-3.21.12\include;$(SolutionDir)External\EAStdC-1.26.03\include;$(SolutionDir)External\D3DX12;$(SolutionDir)External\tinyxml2;$(SolutionDir)External\WinPixEventRuntime\Include;$(SolutionDir)External\NRI\Include;$(SolutionDir)External\NRD\Include;$(SolutionDir)External\NRD\Integration;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\DirectStorage\lib\x64;$(SolutionDir)External\NRI\bin;$(SolutionDir)External\NRD\bin;$(SolutionDir)External\DLSS\Lib\x64;$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>DearImGui.lib;dstorage.lib;NRI.lib;NRD.lib;nvsdk_ngx_d_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <CustomBuildStep>
+      <Command>copy $(SolutionDir)External\DLSS\bin\nvngx_dlss.dll $(OutDir)nvngx_dlss.dll
+copy $(SolutionDir)External\assimp\bin\assimp-vc143-mt.dll $(OutDir)assimp-vc143-mt.dll
+copy $(SolutionDir)External\NVIDIAAftermath\lib\x64\GFSDK_Aftermath_Lib.x64.dll $(OutDir)GFSDK_Aftermath_Lib.x64.dll
+copy $(SolutionDir)External\Agility\bin\D3D12Core.dll $(OutDir)D3D12\D3D12Core.dll
+copy $(SolutionDir)External\Agility\bin\d3d12SDKLayers.dll $(OutDir)D3D12\d3d12SDKLayers.dll
+copy $(SolutionDir)External\DirectStorage\bin\x64\dstorage.dll $(OutDir)dstorage.dll
+copy $(SolutionDir)External\DirectStorage\bin\x64\dstoragecore.dll $(OutDir)dstoragecore.dll
+copy $(SolutionDir)External\WinPixEventRuntime\bin\x64\WinPixEventRuntime.dll $(OutDir)WinPixEventRuntime.dll
+copy $(SolutionDir)External\NRI\bin\NRI.dll $(OutDir)NRI.dll
+copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
+</Command>
+      <Message>Copying dlls...</Message>
+      <Outputs>$(OutDir)nvngx_dlss.dll;$(OutDir)assimp-vc143-mt.dll;$(OutDir)GFSDK_Aftermath_Lib.x64.dll;$(OutDir)D3D12\D3D12Core.dll;$(OutDir)D3D12\d3d12SDKLayers.dll;$(OutDir)WinPixEventRuntime.dll;$(OutDir)dstorage.dll;$(OutDir)dstoragecore.dll;$(OutDir)NRI.dll;$(OutDir)NRD.dll</Outputs>
+      <Inputs>$(SolutionDir)External\DLSS\bin\nvngx_dlss.dll;$(SolutionDir)External\assimp\bin\assimp-vc143-mt.dll;$(SolutionDir)External\NVIDIAAftermath\lib\x64\GFSDK_Aftermath_Lib.x64.dll;$(SolutionDir)External\Agility\bin\D3D12Core.dll;$(SolutionDir)External\Agility\bin\d3d12SDKLayers.dll;$(SolutionDir)External\DirectStorage\bin\x64\dstorage.dll;$(SolutionDir)External\DirectStorage\bin\x64\dstoragecore.dll;$(SolutionDir)External\WinPixEventRuntime\bin\x64\WinPixEventRuntime.dll;$(SolutionDir)External\NRI\bin\NRI.dll;$(SolutionDir)External\NRD\bin\NRD.dll</Inputs>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH/PCH.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>PCH/PCH.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)External;$(SolutionDir)External\DirectStorage\include;$(SolutionDir)External\EABase-2.09.05\include\Common;$(SolutionDir)External\EAAssert\include;$(SolutionDir)External\EASTL-3.21.12\include;$(SolutionDir)External\EAStdC-1.26.03\include;$(SolutionDir)External\D3DX12;$(SolutionDir)External\tinyxml2;$(SolutionDir)External\WinPixEventRuntime\Include;$(SolutionDir)External\NRI\Include;$(SolutionDir)External\NRD\Include;$(SolutionDir)External\NRD\Integration;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\DirectStorage\lib\x64;$(SolutionDir)External\NRI\bin;$(SolutionDir)External\NRD\bin;$(SolutionDir)External\DLSS\Lib\x64;$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>DearImGui.lib;dstorage.lib;NRI.lib;NRD.lib;nvsdk_ngx_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <CustomBuildStep>
+      <Command>copy $(SolutionDir)External\DLSS\bin\nvngx_dlss.dll $(OutDir)nvngx_dlss.dll
+copy $(SolutionDir)External\assimp\bin\assimp-vc143-mt.dll $(OutDir)assimp-vc143-mt.dll
+copy $(SolutionDir)External\NVIDIAAftermath\lib\x64\GFSDK_Aftermath_Lib.x64.dll $(OutDir)GFSDK_Aftermath_Lib.x64.dll
+copy $(SolutionDir)External\Agility\bin\D3D12Core.dll $(OutDir)D3D12\D3D12Core.dll
+copy $(SolutionDir)External\Agility\bin\d3d12SDKLayers.dll $(OutDir)D3D12\d3d12SDKLayers.dll
+copy $(SolutionDir)External\DirectStorage\bin\x64\dstorage.dll $(OutDir)dstorage.dll
+copy $(SolutionDir)External\DirectStorage\bin\x64\dstoragecore.dll $(OutDir)dstoragecore.dll
+copy $(SolutionDir)External\WinPixEventRuntime\bin\x64\WinPixEventRuntime.dll $(OutDir)WinPixEventRuntime.dll
+copy $(SolutionDir)External\NRI\bin\NRI.dll $(OutDir)NRI.dll
+copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
+</Command>
+      <Message>Copying dlls...</Message>
+      <Outputs>$(OutDir)nvngx_dlss.dll;$(OutDir)assimp-vc143-mt.dll;$(OutDir)GFSDK_Aftermath_Lib.x64.dll;$(OutDir)D3D12\D3D12Core.dll;$(OutDir)D3D12\d3d12SDKLayers.dll;$(OutDir)WinPixEventRuntime.dll;$(OutDir)dstorage.dll;$(OutDir)dstoragecore.dll;$(OutDir)NRI.dll;$(OutDir)NRD.dll</Outputs>
+      <Inputs>$(SolutionDir)External\DLSS\bin\nvngx_dlss.dll;$(SolutionDir)External\assimp\bin\assimp-vc143-mt.dll;$(SolutionDir)External\NVIDIAAftermath\lib\x64\GFSDK_Aftermath_Lib.x64.dll;$(SolutionDir)External\Agility\bin\D3D12Core.dll;$(SolutionDir)External\Agility\bin\d3d12SDKLayers.dll;$(SolutionDir)External\DirectStorage\bin\x64\dstorage.dll;$(SolutionDir)External\DirectStorage\bin\x64\dstoragecore.dll;$(SolutionDir)External\WinPixEventRuntime\bin\x64\WinPixEventRuntime.dll;$(SolutionDir)External\NRI\bin\NRI.dll;$(SolutionDir)External\NRD\bin\NRD.dll</Inputs>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\External\D3D12MemoryAllocator\D3D12MemAlloc.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\External\DirectXTex\DDSTextureLoader\DDSTextureLoader12.cpp" />
+    <ClCompile Include="..\External\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="PCH\PCH.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Platform\Windows\WinAPIWindow.cpp" />
+    <ClCompile Include="Render\CommandAllocatorPool.cpp" />
+    <ClCompile Include="Render\CommandQueueManager.cpp" />
+    <ClCompile Include="Render\D3D12\CPUFileLoader.cpp" />
+    <ClCompile Include="Render\D3D12\D3DAdapter.cpp" />
+    <ClCompile Include="Render\D3D12\D3DCommandAllocator.cpp" />
+    <ClCompile Include="Render\D3D12\D3DCommandList.cpp" />
+    <ClCompile Include="Render\D3D12\D3DCommandQueue.cpp" />
+    <ClCompile Include="Render\D3D12\D3DCommandSignature.cpp" />
+    <ClCompile Include="Render\D3D12\D3DComputeShader.cpp" />
+    <ClCompile Include="Render\D3D12\D3DDescriptorHeap.cpp" />
+    <ClCompile Include="Render\D3D12\D3DDevice.cpp" />
+    <ClCompile Include="Render\D3D12\D3DFactory.cpp" />
+    <ClCompile Include="Render\D3D12\D3DGPUTimeQuery.cpp" />
+    <ClCompile Include="Render\D3D12\D3DTileHeap.cpp" />
+    <ClCompile Include="Render\D3D12\D3DPipelineState.cpp" />
+    <ClCompile Include="Render\D3D12\D3DRTShaders.cpp" />
+    <ClCompile Include="Render\D3D12\D3DResource.cpp" />
+    <ClCompile Include="Render\D3D12\D3DResourceDescriptor.cpp" />
+    <ClCompile Include="Render\D3D12\D3DRTBottomLevelAccelerator.cpp" />
+    <ClCompile Include="Render\D3D12\D3DRTTopLevelAccelerator.cpp" />
+    <ClCompile Include="Render\D3D12\D3DSwapchain.cpp" />
+    <ClCompile Include="Render\D3D12\NVDenoiser.cpp" />
+    <ClCompile Include="Render\Device.cpp" />
+    <ClCompile Include="Render\DLSSUpscaling.cpp" />
+    <ClCompile Include="Render\MeasureCPUTime.cpp" />
+    <ClCompile Include="Render\Mesh.cpp" />
+    <ClCompile Include="Render\RenderManager.cpp" />
+    <ClCompile Include="Render\TextureStreamers\TextureStreamer_Immediate.cpp" />
+    <ClCompile Include="Render\TextureStreamers\TextureStreamer_Tiled.cpp" />
+    <ClCompile Include="Render\Upscaling.cpp" />
+    <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\Node.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Sandbox.cpp" />
+    <ClCompile Include="UI\Debug\DebugWindow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\External\D3D12MemoryAllocator\D3D12MemAlloc.h" />
+    <ClInclude Include="..\External\DirectXTex\DDSTextureLoader\DDSTextureLoader12.h" />
+    <ClInclude Include="..\External\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="Common\Color.h" />
+    <ClInclude Include="Common\Files.h" />
+    <ClInclude Include="Common\Finally.h" />
+    <ClInclude Include="Common\Signal.h" />
+    <ClInclude Include="PCH\PCH.h" />
+    <ClInclude Include="PCH\WindowsPCH.h" />
+    <ClInclude Include="Platform\Window.h" />
+    <ClInclude Include="Platform\Windows\WinAPIWindow.h" />
+    <ClInclude Include="Render\Adapter.h" />
+    <ClInclude Include="Render\CommandAllocatorPool.h" />
+    <ClInclude Include="Render\CommandList.h" />
+    <ClInclude Include="Render\CommandQueueManager.h" />
+    <ClInclude Include="Render\CommandAllocator.h" />
+    <ClInclude Include="Render\CommandQueue.h" />
+    <ClInclude Include="Render\CommandSignature.h" />
+    <ClInclude Include="Render\ComputeShader.h" />
+    <ClInclude Include="Render\D3D12\AllocatedResource.h" />
+    <ClInclude Include="Render\D3D12\Conversion.h" />
+    <ClInclude Include="Render\D3D12\CPUFileLoader.h" />
+    <ClInclude Include="Render\D3D12\D3DAdapter.h" />
+    <ClInclude Include="Render\D3D12\D3DCommandAllocator.h" />
+    <ClInclude Include="Render\D3D12\D3DCommandList.h" />
+    <ClInclude Include="Render\D3D12\D3DCommandQueue.h" />
+    <ClInclude Include="Render\D3D12\D3DCommandSignature.h" />
+    <ClInclude Include="Render\D3D12\D3DComputeShader.h" />
+    <ClInclude Include="Render\D3D12\D3DDescriptorHeap.h" />
+    <ClInclude Include="Render\D3D12\D3DDevice.h" />
+    <ClInclude Include="Render\D3D12\D3DFactory.h" />
+    <ClInclude Include="Render\D3D12\D3DGPUTimeQuery.h" />
+    <ClInclude Include="Render\D3D12\D3DTileHeap.h" />
+    <ClInclude Include="Render\D3D12\D3DPipelineState.h" />
+    <ClInclude Include="Render\D3D12\D3DRTShaders.h" />
+    <ClInclude Include="Render\D3D12\D3DResource.h" />
+    <ClInclude Include="Render\D3D12\D3DResourceDescriptor.h" />
+    <ClInclude Include="Render\D3D12\D3DRTBottomLevelAccelerator.h" />
+    <ClInclude Include="Render\D3D12\D3DRTTopLevelAccelerator.h" />
+    <ClInclude Include="Render\D3D12\D3DSwapchain.h" />
+    <ClInclude Include="Render\D3D12\D3DUtils.h" />
+    <ClInclude Include="Render\D3D12\NVDenoiser.h" />
+    <ClInclude Include="Render\Denoiser.h" />
+    <ClInclude Include="Render\FileLoader.h" />
+    <ClInclude Include="Render\GIVolume.h" />
+    <ClInclude Include="Render\Device.h" />
+    <ClInclude Include="Render\DLSSUpscaling.h" />
+    <ClInclude Include="Render\Factory.h" />
+    <ClInclude Include="Render\GPUTimeQuery.h" />
+    <ClInclude Include="Render\Halton.h" />
+    <ClInclude Include="Render\MeasureCPUTime.h" />
+    <ClInclude Include="Render\TileHeap.h" />
+    <ClInclude Include="Render\Mesh.h" />
+    <ClInclude Include="Render\ModelFeatures.h" />
+    <ClInclude Include="Render\PipelineState.h" />
+    <ClInclude Include="Render\RenderManager.h" />
+    <ClInclude Include="Render\Resource.h" />
+    <ClInclude Include="Render\ResourceDescriptor.h" />
+    <ClInclude Include="Render\RTBottomLevelAccelerator.h" />
+    <ClInclude Include="Render\RTShaders.h" />
+    <ClInclude Include="Render\RTTopLevelAccelerator.h" />
+    <ClInclude Include="Render\ShaderStructures.h" />
+    <ClInclude Include="Render\ShaderValues.h" />
+    <ClInclude Include="Render\Swapchain.h" />
+    <ClInclude Include="Render\TextureStreamers\TextureStreamer.h" />
+    <ClInclude Include="Render\TextureStreamers\TextureStreamer_Immediate.h" />
+    <ClInclude Include="Render\TextureStreamers\TextureStreamer_Tiled.h" />
+    <ClInclude Include="Render\TextureStreamers\TFFFormat.h" />
+    <ClInclude Include="Render\Types.h" />
+    <ClInclude Include="Render\Upscaling.h" />
+    <ClInclude Include="Render\Utils.h" />
+    <ClInclude Include="Sandbox.h" />
+    <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\Node.h" />
+    <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="UI\Debug\DebugWindow.h" />
+    <ClInclude Include="UI\UIWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Render\D3D12\Shaders\TraceShadow.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T lib_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T lib_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\TraceReflection.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T lib_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T lib_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\TraceAmbientOcclusion.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T lib_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T lib_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\PrepareDenoiser.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceShadow_sig.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceReflection_sig.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceAmbientOcclusion_sig.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DirectLightingVS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T vs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T vs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DirectLightingPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ScreenQuadVS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T vs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T vs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DSTransferBufferDebugPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DSTransferBufferDebugVS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T vs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T vs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ScreenQuadPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelTranslucentVS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T vs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T vs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelTranslucentPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ToneMappingPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ToneMappingVS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T vs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T vs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelDepthPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelDepthAtestPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\ModelDepthPS.hlsl;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\ModelDepthPS.hlsl;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelDepthVS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T vs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T vs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ModelReflectionPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Blur.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Downsample.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Downsample4.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DownsampleMSAA4.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Downsample4WithLuminanceFilter.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\Culling.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\PrepareCulling.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\SpecBRDFLUT.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\SkyPS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T ps_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T ps_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\SkyVS.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T vs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T vs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\UpsampleAndBlurBloom.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\DownsampleBloom.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\ExtractBloom.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\BlurBloom.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\AdaptExposure.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\GenerateHistogram.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Render\D3D12\Shaders\AlphaTestInstance.hlsli" />
+    <None Include="Render\D3D12\Shaders\AttributeExtractor.hlsli" />
+    <None Include="Render\D3D12\Shaders\CalcSurfaceNormal.hlsli" />
+    <None Include="Render\D3D12\Shaders\GetAttributes.hlsli" />
+    <None Include="Render\D3D12\Shaders\Lighting.hlsli" />
+    <None Include="Render\D3D12\Shaders\PBRUtils.hlsli" />
+    <None Include="Render\D3D12\Shaders\Reflection.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\DirectLighting.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\GIProbe.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\ScreenQuad.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\DSTransferBufferDebug.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\ShaderStructures.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\ToneMapping.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\ModelDepth.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\ModelTranslucent.hlsli" />
+    <None Include="Render\D3D12\Shaders\RootSignatures\Sky.hlsli" />
+    <None Include="Render\D3D12\Shaders\RTUtils.hlsli" />
+    <None Include="Render\D3D12\Shaders\TextureSampling.hlsli" />
+    <None Include="Render\D3D12\Shaders\Utils.hlsli" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\WinPixEventRuntime.1.0.200127001\build\WinPixEventRuntime.targets" Condition="Exists('..\packages\WinPixEventRuntime.1.0.200127001\build\WinPixEventRuntime.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\WinPixEventRuntime.1.0.200127001\build\WinPixEventRuntime.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WinPixEventRuntime.1.0.200127001\build\WinPixEventRuntime.targets'))" />
+  </Target>
+</Project>
