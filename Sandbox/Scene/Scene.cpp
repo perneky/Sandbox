@@ -1209,11 +1209,7 @@ void Scene::RenderAO( CommandList& commandList )
 
   SetupTriangleBuffers( commandList, true );
 
-  #if AO_CHECKERBOARD
-    commandList.DispatchRays( aoTexture->GetTextureWidth() / 2, aoTexture->GetTextureHeight(), 1 );
-  #else
-    commandList.DispatchRays( aoTexture->GetTextureWidth(), aoTexture->GetTextureHeight(), 1 );
-  #endif
+  commandList.DispatchRays( aoTexture->GetTextureWidth() / 2, aoTexture->GetTextureHeight(), 1 );
 
   commandList.AddUAVBarrier( { *aoTexture } );
   commandList.ChangeResourceState( *aoTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
