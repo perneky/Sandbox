@@ -38,7 +38,7 @@ half3 CalcReflection( float3 worldPosition, half3 worldNormal )
 
     half3 probeGI         = 0.5;
     half3 effectiveAlbedo = surfaceAlbedo;
-    half3 directLighting  = TraceDirectLighting( effectiveAlbedo, surfaceRoughness, surfaceMetallic, hitGeom.worldPosition, surfaceWorldNormal, 0, worldPosition, frameParams.lightCount );
+    half3 directLighting  = TraceDirectLighting( effectiveAlbedo, surfaceRoughness, surfaceMetallic, hitGeom.worldPosition, surfaceWorldNormal, 1, worldPosition, frameParams.lightCount );
 
     half3 diffuseIBL;
     half3 specularIBL;

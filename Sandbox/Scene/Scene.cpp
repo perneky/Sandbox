@@ -621,7 +621,7 @@ Scene::Scene( CommandList& commandList, const wchar_t* hostFolder, int screenWid
   frameParamsBuffer->AttachResourceDescriptor( ResourceDescriptorType::UnorderedAccessView, eastl::move( frameParamsBufferUAVDesc ) );
   frameParamsBuffer->AttachResourceDescriptor( ResourceDescriptorType::ConstantBufferView, eastl::move( frameParamsBufferCBVDesc ) );
 
-  lightParamsBuffer = device.CreateBuffer( ResourceType::Buffer, HeapType::Default, true, sizeof( LightParams ), int( sizeof( LightParams ) * lightSlots.size() ), L"lightParamsBuffer");
+  lightParamsBuffer = device.CreateBuffer( ResourceType::Buffer, HeapType::Default, true, sizeof( LightParams ), int( sizeof( LightParams ) * lightSlots.size() ), L"lightParamsBuffer" );
   auto lightParamsBufferUAVDesc = device.GetShaderResourceHeap().RequestDescriptorFromSlot( device, ResourceDescriptorType::UnorderedAccessView, ProcessedLightBufferUAVSlot, *lightParamsBuffer, sizeof( LightParams ) );
   auto lightParamsBufferSRVDesc = device.GetShaderResourceHeap().RequestDescriptorFromSlot( device, ResourceDescriptorType::ShaderResourceView, ProcessedLightBufferSRVSlot, *lightParamsBuffer, sizeof( LightParams ) );
   lightParamsBuffer->AttachResourceDescriptor( ResourceDescriptorType::UnorderedAccessView, eastl::move( lightParamsBufferUAVDesc ) );
@@ -1440,7 +1440,7 @@ void Scene::RenderTranslucent( CommandList& commandList )
     commandList.SetConstantBuffer( 1, *frameParamsBuffer );
     commandList.SetRayTracingScene( 2, *tlas );
     commandList.SetShaderResourceView( 3, *materialBuffer );
-    commandList.SetShaderResourceView( 4, *lightBuffer );
+    commandList.SetShaderResourceView( 4, *lightParamsBuffer );
     commandList.SetShaderResourceView( 5, *modelMetaBuffer );
     commandList.SetShaderResourceView( 6, *specBRDFLUTTexture );
     commandList.SetShaderResourceView( 7, *skyTexture );
