@@ -428,9 +428,6 @@
     <None Include="Render\D3D12\Shaders\RTUtils.hlsli">
       <Filter>Render\D3D12\Shaders</Filter>
     </None>
-    <None Include="Render\D3D12\Shaders\Reflection.hlsli">
-      <Filter>Render\D3D12\Shaders</Filter>
-    </None>
     <None Include="Render\D3D12\Shaders\TextureSampling.hlsli">
       <Filter>Render\D3D12\Shaders</Filter>
     </None>
@@ -461,6 +458,9 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Render\D3D12\Shaders\TraceReflection.hlsl">
+      <Filter>Render\D3D12\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\TraceGI.hlsl">
       <Filter>Render\D3D12\Shaders</Filter>
     </CustomBuild>
     <CustomBuild Include="Render\D3D12\Shaders\PrepareDenoiser.hlsl">
@@ -563,6 +563,9 @@
       <Filter>Render\D3D12\Shaders</Filter>
     </CustomBuild>
     <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceReflection_sig.hlsl">
+      <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceGI_sig.hlsl">
       <Filter>Render\D3D12\Shaders\RootSignatures</Filter>
     </CustomBuild>
     <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceAmbientOcclusion_sig.hlsl">

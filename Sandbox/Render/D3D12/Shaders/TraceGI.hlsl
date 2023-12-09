@@ -10,7 +10,7 @@ StructuredBuffer< LightParams > lights : register( t11 );
 Texture2D< half2 > brdfLUT : register( t12 );
 TextureCube< half4 > skyCube : register( t13 );
 
-RWTexture2D< float4 > reflectionTexture : register( u0 );
+RWTexture2D< float4 > giTexture : register( u0 );
 
 SamplerState trilinearWrapSampler   : register( s0 );
 SamplerState trilinearClampSampler  : register( s1 );
@@ -24,6 +24,27 @@ SamplerState anisotropicWrapSampler : register( s2 );
 #include "RTUtils.hlsli"
 #include "../../../../External/NRD/Shaders/Include/NRDEncoding.hlsli"
 #include "../../../../External/NRD/Shaders/Include/NRD.hlsli"
+
+static const uint QueryFlags = RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
+
+half CalcShadow( float3 worldPosition )
+{
+  RayQuery< QueryFlags > query;
+  RayDesc                ray;
+
+  ray.Origin    = worldPosition;
+  ray.Direction = -lights[ 0 ].direction.xyz;
+  ray.TMin      = 0.001;
+  ray.TMax      = INF;
+
+  query.TraceRayInline( rayTracingScene, QueryFlags, 0xFF, ray );
+  query.Proceed();
+  
+  if ( query.CommittedStatus() == COMMITTED_TRIANGLE_HIT )
+    return 0;
+  
+  return 1;
+}
 
 [ shader( "raygeneration" ) ]
 void raygen()
@@ -43,26 +64,10 @@ void raygen()
   if ( !GetAttributes( rayIndex, frameParams.rendererSizeF, attribs ) )
     return;
 
-  half3 worldGeometryNormal = normalize( attribs.worldNormal );
-  half3 worldSurfaceNormal  = CalcSurfaceNormal( materials[ attribs.materialIndex ].normalTextureIndex, attribs.texcoord, attribs.worldNormal, attribs.worldTangent, attribs.worldBitangent, attribs.textureMip );
-  half  roughness           = materials[ attribs.materialIndex ].roughness_metallic.x;
+  attribs.worldNormal = normalize( attribs.worldNormal );
 
-  if ( materials[ attribs.materialIndex ].roughnessTextureIndex >= 0 )
-    roughness = SampleTexture( materials[ attribs.materialIndex ].roughnessTextureIndex, attribs.texcoord, attribs.textureMip ).r;
-  
-  half3 reflecionVector = reflect( half3( normalize( attribs.worldPosition - frameParams.cameraPosition.xyz ) ), worldSurfaceNormal );
-  
   float seed   = outputIndex.x + outputIndex.y * 3.43121412313 + frac( 1.12345314312 * ( frameParams.frameIndex % MAX_ACCUM_DENOISE_FRAMES ) );
-  half3 sample = CosineSampleHemisphere( reflecionVector, seed, roughness * roughness );
-  float SoN    = dot( worldGeometryNormal, sample );
-  
-  // The ray points into the surface, lets mirror it to the surface
-  if ( SoN < 0 )
-  {
-    half3 T = cross( worldGeometryNormal, sample );
-    half3 B = cross( worldGeometryNormal, T );
-    sample = reflect( sample, B );
-  }
+  half3 sample = CosineSampleHemisphere( attribs.worldNormal, seed );
   
   RayDesc ray;
   ray.Origin    = attribs.worldPosition;
@@ -70,16 +75,16 @@ void raygen()
   ray.TMin      = 0.001;
   ray.TMax      = INF;
 
-  ReflectionPayload payload = { 1.xxx, NRD_FP16_MAX };
+  GIPayload payload = { 0.xxx, 0, 1, seed };
   TraceRay( rayTracingScene, 0, 0xFF, 0, 0, 0, ray, payload );
   
-  float  hitDist = REBLUR_FrontEnd_GetNormHitDist( payload.distance, attribs.viewZ, hitDistParams, roughness );
-  float4 packedReflection = REBLUR_FrontEnd_PackRadianceAndNormHitDist( payload.color, hitDist );
-  reflectionTexture[ outputIndex ] = packedReflection;
+  float  hitDist  = REBLUR_FrontEnd_GetNormHitDist( payload.distance, attribs.viewZ, hitDistParams );
+  float4 packedGI = REBLUR_FrontEnd_PackRadianceAndNormHitDist( payload.color, hitDist );
+  giTexture[ outputIndex ] = packedGI;
 }
 
 [ shader( "anyhit" ) ]
-void anyHit( inout ReflectionPayload payload, in BuiltInTriangleIntersectionAttributes attribs )
+void anyHit( inout GIPayload payload, in BuiltInTriangleIntersectionAttributes attribs )
 {
   // All not alpha tested geomteries are opaque, and doesn't call the anyHit shader.
   
@@ -96,24 +101,43 @@ void anyHit( inout ReflectionPayload payload, in BuiltInTriangleIntersectionAttr
 }
 
 [ shader( "miss" ) ]
-void miss( inout ReflectionPayload payload )
+void miss( inout GIPayload payload )
 {
-  payload.color   *= min( skyCube.SampleLevel( trilinearWrapSampler, WorldRayDirection(), 0 ).rgb, 128 );
+  payload.color    = min( skyCube.SampleLevel( trilinearWrapSampler, WorldRayDirection(), 0 ).rgb, 128 );
   payload.distance = NRD_FP16_MAX;
 }
 
 [ shader( "closesthit" ) ]
-void closestHit( inout ReflectionPayload payload, in BuiltInTriangleIntersectionAttributes attribs )
+void closestHit( inout GIPayload payload, in BuiltInTriangleIntersectionAttributes attribs )
 {
   HitGeometry hit = CalcClosestHitGeometry( attribs.barycentrics );
-  
-  MaterialSlot material = materials[ hit.materialIndex ];
+
+  payload.distance += RayTCurrent();
+  payload.seed     += RayTCurrent();
 
   half3 surfaceWorldNormal = normalize( hit.worldNormal );
-  half3 surfaceAlbedo      = material.albedo.rgb;
-  half3 surfaceEmissive    = material.emissive.rgb;
-  half  surfaceRoughness   = material.roughness_metallic.x;
-  half  surfaceMetallic    = material.roughness_metallic.y;
+
+  if ( payload.iteration < GI_MAX_ITERATIONS )
+  {
+    half3 sample = CosineSampleHemisphere( surfaceWorldNormal, payload.seed );
+
+    RayDesc ray;
+    ray.Origin    = hit.worldPosition;
+    ray.Direction = sample;
+    ray.TMin      = 0.001;
+    ray.TMax      = INF;
+
+    ++payload.iteration;
+    
+    TraceRay( rayTracingScene, 0, 0xFF, 0, 0, 0, ray, payload );
+  }
+
+  MaterialSlot material = materials[ hit.materialIndex ];
+
+  half3 surfaceAlbedo    = material.albedo.rgb;
+  half3 surfaceEmissive  = material.emissive.rgb;
+  half  surfaceRoughness = material.roughness_metallic.x;
+  half  surfaceMetallic  = material.roughness_metallic.y;
 
   if ( materials[ hit.materialIndex ].albedoTextureIndex >= 0 )
     surfaceAlbedo = SampleTexture( materials[ hit.materialIndex ].albedoTextureIndex, hit.texcoord ).rgb;
@@ -124,12 +148,13 @@ void closestHit( inout ReflectionPayload payload, in BuiltInTriangleIntersection
   if ( materials[ hit.materialIndex ].metallicTextureIndex >= 0 )
     surfaceMetallic = SampleTexture( materials[ hit.materialIndex ].metallicTextureIndex, hit.texcoord ).r;
 
-  half3 probeGI        = 0.5;
-  half3 directLighting = TraceDirectLighting( surfaceAlbedo, surfaceRoughness, surfaceMetallic, hit.worldPosition, surfaceWorldNormal, 1, WorldRayOrigin(), frameParams.lightCount );
+  half3 gi             = half3( payload.color );
+  half  shadow         = CalcShadow( hit.worldPosition );
+  half3 directLighting = TraceDirectLighting( surfaceAlbedo, surfaceRoughness, surfaceMetallic, hit.worldPosition, surfaceWorldNormal, shadow, WorldRayOrigin(), frameParams.lightCount );
 
   half3 diffuseIBL;
   half3 specularIBL;
-  TraceIndirectLighting( probeGI
+  TraceIndirectLighting( gi
                        , brdfLUT
                        , surfaceAlbedo
                        , surfaceRoughness
@@ -139,6 +164,5 @@ void closestHit( inout ReflectionPayload payload, in BuiltInTriangleIntersection
                        , WorldRayOrigin()
                        , diffuseIBL
                        , specularIBL );
-  payload.color   *= half3( surfaceEmissive + directLighting + diffuseIBL );
-  payload.distance = RayTCurrent();
+  payload.color = half3( surfaceEmissive + directLighting + diffuseIBL );
 }

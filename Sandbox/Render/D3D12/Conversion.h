@@ -57,6 +57,7 @@ inline DXGI_FORMAT Convert( PixelFormat format )
   case PixelFormat::BGRA8888UN:    return DXGI_FORMAT_B8G8R8A8_UNORM;
   case PixelFormat::RGBA1010102UN: return DXGI_FORMAT_R10G10B10A2_UNORM;
   case PixelFormat::RGBA16161616F: return DXGI_FORMAT_R16G16B16A16_FLOAT;
+  case PixelFormat::RGB111110F:    return DXGI_FORMAT_R11G11B10_FLOAT;
   case PixelFormat::RG1616F:       return DXGI_FORMAT_R16G16_FLOAT;
   case PixelFormat::RG1616U:       return DXGI_FORMAT_R16G16_UINT;
   case PixelFormat::R16UN:         return DXGI_FORMAT_R16_UNORM;

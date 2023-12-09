@@ -32,6 +32,7 @@ public:
   static constexpr PixelFormat ShadowTransFormat  = PixelFormat::RGBA8888UN;
   static constexpr PixelFormat ReflDepthFormat    = PixelFormat::R32F;
   static constexpr PixelFormat AOFormat           = PixelFormat::R8UN;
+  static constexpr PixelFormat GIFormat           = PixelFormat::RGBA16161616F;
   static constexpr PixelFormat MotionVectorFormat = PixelFormat::RG1616F;
   static constexpr PixelFormat LumaFormat         = PixelFormat::R8U;
   static constexpr PixelFormat HQSFormat          = PixelFormat::R8UN;
@@ -45,7 +46,7 @@ public:
   void UpdateBeforeFrame( CommandList& commandList );
   TextureStreamer::UpdateResult UpdateAfterFrame( CommandList& commandList, CommandQueueType commandQueueType, uint64_t fence );
 
-  void RenderDebugTexture( CommandList& commandList, int texIndex, int screenWidth, int screenHeight );
+  void RenderDebugTexture( CommandList& commandList, int texIndex, int screenWidth, int screenHeight, DebugOutput debugOutput );
 
   void IdleGPU();
 

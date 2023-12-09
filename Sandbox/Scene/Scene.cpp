@@ -399,6 +399,13 @@ Scene::Scene( CommandList& commandList, const wchar_t* hostFolder, int screenWid
     materialSlot.albedo.y = PackedVector::XMConvertFloatToHalf( pow( baseColor.g, 1.0f / 2.2f ) );
     materialSlot.albedo.z = PackedVector::XMConvertFloatToHalf( pow( baseColor.b, 1.0f / 2.2f ) );
 
+    aiColor3D emissive( 0 );
+    material->Get( AI_MATKEY_COLOR_EMISSIVE, emissive );
+
+    materialSlot.emissive.x = PackedVector::XMConvertFloatToHalf( pow( emissive.r, 1.0f / 2.2f ) );
+    materialSlot.emissive.y = PackedVector::XMConvertFloatToHalf( pow( emissive.g, 1.0f / 2.2f ) );
+    materialSlot.emissive.z = PackedVector::XMConvertFloatToHalf( pow( emissive.b, 1.0f / 2.2f ) );
+
     bool isTwoSided    = false;
     bool isAlphaTested = false;
     bool isTranslucent = false;
@@ -661,6 +668,8 @@ Scene::Scene( CommandList& commandList, const wchar_t* hostFolder, int screenWid
   auto adaptExposureFile      = ReadFileToMemory( L"Content/Shaders/AdaptExposure.cso" );
   auto traceShadowFile        = ReadFileToMemory( L"Content/Shaders/TraceShadow.cso" );
   auto traceShadow_sigFile    = ReadFileToMemory( L"Content/Shaders/TraceShadow_sig.cso" );
+  auto traceGIFile            = ReadFileToMemory( L"Content/Shaders/TraceGI.cso" );
+  auto traceGI_sigFile        = ReadFileToMemory( L"Content/Shaders/TraceGI_sig.cso" );
   auto traceAOFile            = ReadFileToMemory( L"Content/Shaders/TraceAmbientOcclusion.cso" );
   auto traceAO_sigFile        = ReadFileToMemory( L"Content/Shaders/TraceAmbientOcclusion_sig.cso" );
   auto traceReflecionFile     = ReadFileToMemory( L"Content/Shaders/TraceReflection.cso" );
@@ -702,6 +711,17 @@ Scene::Scene( CommandList& commandList, const wchar_t* hostFolder, int screenWid
                                             , sizeof( XMFLOAT2 ) // BuiltInTriangleIntersectionAttributes
                                             , sizeof( ShadowPayload )
                                             , 1 );
+
+  traceGIShader = device.CreateRTShaders( commandList
+                                        , traceGI_sigFile
+                                        , traceGIFile
+                                        , L"raygen"
+                                        , L"miss"
+                                        , L"anyHit"
+                                        , L"closestHit"
+                                        , sizeof( XMFLOAT2 ) // BuiltInTriangleIntersectionAttributes
+                                        , sizeof( GIPayload )
+                                        , GI_MAX_ITERATIONS );
 
   traceReflectionShader = device.CreateRTShaders( commandList
                                                 , traceReflecion_sigFile
@@ -856,6 +876,7 @@ void Scene::TearDownScreenSizeDependantTextures( CommandList& commandList )
   commandList.HoldResource( eastl::move( depthTexture ) );
   commandList.HoldResource( eastl::move( aoTexture ) );
   commandList.HoldResource( eastl::move( reflectionTexture ) );
+  commandList.HoldResource( eastl::move( giTexture ) );
   commandList.HoldResource( eastl::move( lumaTexture ) );
   commandList.HoldResource( eastl::move( shadowTexture ) );
   commandList.HoldResource( eastl::move( shadowTransTexture ) );
@@ -897,9 +918,12 @@ void Scene::RecreateScrenSizeDependantTextures( CommandList& commandList, int wi
   depthTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::DepthFormat, false, DepthTextureSlot, eastl::nullopt, false, L"DepthTexture" );
   commandList.ChangeResourceState( *depthTexture, ResourceStateBits::DepthWrite );
 
-  aoTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::AOFormat, false, AOTextureSRVSlot, AOTextureUAVSlot, false, L"AOTexture" );
+  #if USE_AO_WITH_GI
+    aoTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::AOFormat,  false, AOTextureSRVSlot, AOTextureUAVSlot, false, L"AOTexture" );
+  #endif
 
   reflectionTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::HDRFormat, false, ReflectionTextureSRVSlot, ReflectionTextureUAVSlot, false, L"ReflectionTexture" );
+  giTexture         = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::GIFormat,  false, GITextureSRVSlot, GITextureUAVSlot, false, L"GITexture" );
 
   auto bloomWidth  = width  > 2560 ? 1280 : 640;
   auto bloomHeight = height > 1440 ? 768  : 384;
@@ -1197,22 +1221,48 @@ void Scene::RenderShadow( CommandList& commandList )
 
 void Scene::RenderAO( CommandList& commandList )
 {
+  #if USE_AO_WITH_GI
+    auto& renderManager = RenderManager::GetInstance();
+
+    GPUSection gpuSection( commandList, L"Render ambient occlusion" );
+
+    commandList.ChangeResourceState( *aoTexture, ResourceStateBits::UnorderedAccess );
+
+    commandList.SetRayTracingShader( *traceAOShader );
+    commandList.SetComputeUnorderedAccessView( triangleExtractRootConstants + 0, *aoTexture );
+    commandList.SetComputeConstantValues( triangleExtractRootConstants + 1, denoiser->GetHitDistanceParams(), 0 );
+
+    SetupTriangleBuffers( commandList, true );
+
+    commandList.DispatchRays( aoTexture->GetTextureWidth() / 2, aoTexture->GetTextureHeight(), 1 );
+
+    commandList.AddUAVBarrier( { *aoTexture } );
+    commandList.ChangeResourceState( *aoTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
+  #endif
+}
+
+void Scene::RenderGI( CommandList& commandList )
+{
   auto& renderManager = RenderManager::GetInstance();
 
-  GPUSection gpuSection( commandList, L"Render ambient occlusion" );
+  GPUSection gpuSection( commandList, L"Render global illumination" );
 
-  commandList.ChangeResourceState( *aoTexture, ResourceStateBits::UnorderedAccess );
+  commandList.ChangeResourceState( *giTexture, ResourceStateBits::UnorderedAccess );
 
-  commandList.SetRayTracingShader( *traceAOShader );
-  commandList.SetComputeUnorderedAccessView( triangleExtractRootConstants + 0, *aoTexture );
-  commandList.SetComputeConstantValues( triangleExtractRootConstants + 1, denoiser->GetHitDistanceParams(), 0 );
+  commandList.SetRayTracingShader( *traceGIShader );
+  commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 0, *lightParamsBuffer );
+  commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 1, *specBRDFLUTTexture );
+  commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 2, *skyTexture );
+  commandList.SetComputeUnorderedAccessView( triangleExtractRootConstants + 3, *giTexture );
+  commandList.SetComputeConstantValues( triangleExtractRootConstants + 4, denoiser->GetHitDistanceParams(), 0 );
 
   SetupTriangleBuffers( commandList, true );
 
-  commandList.DispatchRays( aoTexture->GetTextureWidth() / 2, aoTexture->GetTextureHeight(), 1 );
+  commandList.DispatchRays( giTexture->GetTextureWidth() / 2, giTexture->GetTextureHeight(), 1 );
 
-  commandList.AddUAVBarrier( { *aoTexture } );
-  commandList.ChangeResourceState( *aoTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
+  commandList.AddUAVBarrier( { *giTexture } );
+
+  commandList.ChangeResourceState( *giTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
 }
 
 void Scene::Denoise( CommandAllocator& commandAllocator, CommandList& commandList, float jitterX, float jitterY, bool showDenoiserDebugLayer )
@@ -1241,7 +1291,8 @@ void Scene::Denoise( CommandAllocator& commandAllocator, CommandList& commandLis
                       , farZ );
   auto denoisedTextures = denoiser->Denoise( commandAllocator
                                             , commandList
-                                            , *aoTexture
+                                            , *giTexture
+                                            , aoTexture.get()
                                             , *shadowTexture
                                             , *shadowTransTexture
                                             , *reflectionTexture
@@ -1255,6 +1306,7 @@ void Scene::Denoise( CommandAllocator& commandAllocator, CommandList& commandLis
   denoisedAOTexture         = denoisedTextures.ambientOcclusion;
   denoisedShadowTexture     = denoisedTextures.shadow;
   denoisedReflectionTexture = denoisedTextures.reflection;
+  denoisedGITexture         = denoisedTextures.globalIllumination;
   denoiserValidationTexture = denoisedTextures.validation;
 
   commandList.BindHeaps();
@@ -1266,25 +1318,22 @@ void Scene::RenderReflection( CommandList& commandList )
 
   GPUSection gpuSection( commandList, L"Render reflection" );
 
-  {
-    GPUSection gpuSection( commandList, L"Trace reflection" );
-    commandList.ChangeResourceState( *reflectionTexture, ResourceStateBits::UnorderedAccess );
+  commandList.ChangeResourceState( *reflectionTexture, ResourceStateBits::UnorderedAccess );
 
-    commandList.SetRayTracingShader( *traceReflectionShader );
-    commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 0, *lightParamsBuffer );
-    commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 1, *specBRDFLUTTexture );
-    commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 2, *skyTexture );
-    commandList.SetComputeUnorderedAccessView( triangleExtractRootConstants + 3, *reflectionTexture );
-    commandList.SetComputeConstantValues( triangleExtractRootConstants + 4, denoiser->GetHitDistanceParams(), 0 );
+  commandList.SetRayTracingShader( *traceReflectionShader );
+  commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 0, *lightParamsBuffer );
+  commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 1, *specBRDFLUTTexture );
+  commandList.SetComputeShaderResourceView( triangleExtractRootConstants + 2, *skyTexture );
+  commandList.SetComputeUnorderedAccessView( triangleExtractRootConstants + 3, *reflectionTexture );
+  commandList.SetComputeConstantValues( triangleExtractRootConstants + 4, denoiser->GetHitDistanceParams(), 0 );
 
-    SetupTriangleBuffers( commandList, true );
+  SetupTriangleBuffers( commandList, true );
 
-    commandList.DispatchRays( reflectionTexture->GetTextureWidth() / 2, reflectionTexture->GetTextureHeight(), 1 );
+  commandList.DispatchRays( reflectionTexture->GetTextureWidth() / 2, reflectionTexture->GetTextureHeight(), 1 );
 
-    commandList.AddUAVBarrier( { *reflectionTexture } );
+  commandList.AddUAVBarrier( { *reflectionTexture } );
 
-    commandList.ChangeResourceState( *reflectionTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
-  }
+  commandList.ChangeResourceState( *reflectionTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
 }
 
 void Scene::SetupTriangleBuffers( CommandList& commandList, bool compute )
@@ -1348,6 +1397,9 @@ void Scene::RenderDirectLighting( CommandList& commandList )
   if ( denoisedReflectionTexture )
     commandList.ChangeResourceState( *denoisedReflectionTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
 
+  if ( denoisedGITexture )
+    commandList.ChangeResourceState( *denoisedGITexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
+
   commandList.SetPipelineState( renderManager.GetPipelinePreset( PipelinePresets::DirectLighting ) );
   commandList.SetPrimitiveType( PrimitiveType::TriangleList );
   commandList.SetVertexBufferToNull();
@@ -1362,9 +1414,11 @@ void Scene::RenderDirectLighting( CommandList& commandList )
     commandList.SetShaderResourceView( triangleExtractRootConstants + 4, *denoisedShadowTexture );
   if ( denoisedReflectionTexture )
     commandList.SetShaderResourceView( triangleExtractRootConstants + 5, *denoisedReflectionTexture );
+  if ( denoisedGITexture )
+    commandList.SetShaderResourceView( triangleExtractRootConstants + 6, *denoisedGITexture );
   if ( auto globalTextureFeedbackBuffer = renderManager.GetGlobalTextureFeedbackBuffer( commandList ) )
-    commandList.SetUnorderedAccessView( triangleExtractRootConstants + 6, *globalTextureFeedbackBuffer );
-  commandList.SetDescriptorHeap( triangleExtractRootConstants + 7, RenderManager::GetInstance().GetShaderResourceHeap(), Scene2DFeedbackBaseSlot );
+    commandList.SetUnorderedAccessView( triangleExtractRootConstants + 7, *globalTextureFeedbackBuffer );
+  commandList.SetDescriptorHeap( triangleExtractRootConstants + 8, RenderManager::GetInstance().GetShaderResourceHeap(), Scene2DFeedbackBaseSlot );
 
   SetupTriangleBuffers( commandList, false );
   
@@ -1678,19 +1732,20 @@ void Scene::Upscale( CommandList& commandList, Resource& backBuffer )
   }
 }
 
-void Scene::RenderDenoiserDebugLayer( CommandList& commandList )
+void Scene::RenderDebugLayer( CommandList& commandList, DebugOutput debugOutput )
 {
-  if ( !denoiser )
+  if ( debugOutput == DebugOutput::None )
     return;
 
   auto& manager = RenderManager::GetInstance();
 
   struct
   {
-    XMFLOAT2 leftTop;
-    XMFLOAT2 widthHeight;
-    uint32_t mipLevel;
-    uint32_t sceneTextureId;
+    XMFLOAT2    leftTop;
+    XMFLOAT2    widthHeight;
+    uint32_t    mipLevel;
+    uint32_t    sceneTextureId;
+    DebugOutput debugOutput;
   } quadParams;
 
   quadParams.leftTop.x      = -1;
@@ -1699,13 +1754,30 @@ void Scene::RenderDenoiserDebugLayer( CommandList& commandList )
   quadParams.widthHeight.y  = -2;
   quadParams.mipLevel       = 0;
   quadParams.sceneTextureId = 0xFFFFFFFFU;
+  quadParams.debugOutput    = debugOutput;
 
   commandList.SetPipelineState( manager.GetPipelinePreset( PipelinePresets::QuadDebug ) );
   commandList.SetVertexBufferToNull();
   commandList.SetIndexBufferToNull();
   commandList.SetPrimitiveType( PrimitiveType::TriangleStrip );
   commandList.SetConstantValues( 0, quadParams, 0 );
-  commandList.SetShaderResourceView( 1, *denoiserValidationTexture );
+
+  Resource* texture = nullptr;
+  switch ( debugOutput )
+  {
+  case DebugOutput::Denoiser:           texture = denoiserValidationTexture;  break;
+  case DebugOutput::AO:                 texture = aoTexture.get(); break;
+  case DebugOutput::DenoisedAO:         texture = denoisedAOTexture; break;
+  case DebugOutput::Shadow:             texture = shadowTexture.get(); break;
+  case DebugOutput::DenoisedShadow:     texture = denoisedShadowTexture; break;
+  case DebugOutput::Reflection:         texture = reflectionTexture.get(); break;
+  case DebugOutput::DenoisedReflection: texture = denoisedReflectionTexture; break;
+  case DebugOutput::GI:                 texture = giTexture.get(); break;
+  case DebugOutput::DenoisedGI:         texture = denoisedGITexture; break;
+  }
+  assert( texture );
+  commandList.ChangeResourceState( *texture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
+  commandList.SetShaderResourceView( 1, *texture );
   commandList.Draw( 4 );
 }
 
@@ -1713,8 +1785,8 @@ void Scene::Render( CommandAllocator& commandAllocator
                   , CommandList& commandList
                   , Resource& backBuffer
                   , bool useTextureFeedback
-                  , bool showDenoiserDebugLayer
-                  , bool freezeCulling )
+                  , bool freezeCulling
+                  , DebugOutput debugOutput )
 {
   auto& renderManager = RenderManager::GetInstance();
   auto& device        = renderManager.GetDevice();
@@ -1742,9 +1814,10 @@ void Scene::Render( CommandAllocator& commandAllocator
 
   RenderDepth( commandList );
   RenderShadow( commandList );
+  RenderGI( commandList );
   RenderAO( commandList );
   RenderReflection( commandList );
-  Denoise( commandAllocator, commandList, jitter.x, jitter.y, showDenoiserDebugLayer );
+  Denoise( commandAllocator, commandList, jitter.x, jitter.y, debugOutput == DebugOutput::Denoiser );
   commandList.SetRenderTarget( renderTarget, nullptr );
   RenderDirectLighting( commandList );
   commandList.SetRenderTarget( renderTarget, depthTexture.get() );
@@ -1754,8 +1827,7 @@ void Scene::Render( CommandAllocator& commandAllocator
   PostProcessing( commandList, backBuffer );
   AdaptExposure( commandList );
 
-  if ( showDenoiserDebugLayer )
-    RenderDenoiserDebugLayer( commandList );
+  RenderDebugLayer( commandList, debugOutput );
 
   ++frameCounter;
 }

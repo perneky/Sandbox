@@ -184,15 +184,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                      , *commandList
                      , backBuffer
                      , debugWindow.GetUpdateTextureStreaming()
-                     , debugWindow.GetShowDenoiserDebugLayer()
-                     , debugWindow.GetFreezeCulling() );
+                     , debugWindow.GetFreezeCulling()
+                     , debugWindow.GetDebugOutput() );
 
         TextureStreamer::UpdateResult streamingCommandLists;
         if ( debugWindow.GetUpdateTextureStreaming() )
           streamingCommandLists = renderManager.UpdateAfterFrame( *commandList, CommandQueueType::Direct, nextFrameFenceValue );
 
         if ( int texIndex = debugWindow.GetDebugTextureIndex(); texIndex >= 0 )
-          renderManager.RenderDebugTexture( *commandList, texIndex, backBuffer.GetTextureWidth(), backBuffer.GetTextureHeight() );
+          renderManager.RenderDebugTexture( *commandList, texIndex, backBuffer.GetTextureWidth(), backBuffer.GetTextureHeight(), DebugOutput::None );
 
         if ( enableImGui )
         {

@@ -283,6 +283,17 @@ copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\TraceGI.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T lib_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T lib_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
     <CustomBuild Include="Render\D3D12\Shaders\TraceAmbientOcclusion.hlsl">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T lib_6_6 -Qembed_debug %(FullPath)</Command>
@@ -317,6 +328,17 @@ copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceReflection_sig.hlsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso" -T cs_6_6 %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Identity)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Sandbox\Content\Shaders\%(Filename).cso</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Render\ShaderValues.h;$(ProjectDir)Render\ShaderStructures.h;$(ProjectDir)Render\D3D12\Shaders\*.hlsli;$(ProjectDir)Render\D3D12\Shaders\RootSignatures\*.hlsli;%(AdditionalInputs)</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="Render\D3D12\Shaders\RootSignatures\TraceGI_sig.hlsl">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)External\DXC\bin\dxc.exe -enable-16bit-types -all_resources_bound -Zi -Od -Fo"$(SolutionDir)Sandbox\Content\Shaders\%(Filename)_d.cso" -T cs_6_6 -Qembed_debug %(FullPath)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Identity)</Message>
@@ -677,7 +699,6 @@ copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
     <None Include="Render\D3D12\Shaders\GetAttributes.hlsli" />
     <None Include="Render\D3D12\Shaders\Lighting.hlsli" />
     <None Include="Render\D3D12\Shaders\PBRUtils.hlsli" />
-    <None Include="Render\D3D12\Shaders\Reflection.hlsli" />
     <None Include="Render\D3D12\Shaders\RootSignatures\DirectLighting.hlsli" />
     <None Include="Render\D3D12\Shaders\RootSignatures\GIProbe.hlsli" />
     <None Include="Render\D3D12\Shaders\RootSignatures\ScreenQuad.hlsli" />

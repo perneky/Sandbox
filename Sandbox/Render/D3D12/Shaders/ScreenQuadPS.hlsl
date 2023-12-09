@@ -1,6 +1,9 @@
 #define PS
 #include "RootSignatures/ScreenQuad.hlsli"
 
+#include "../../../../External/NRD/Shaders/Include/NRDEncoding.hlsli"
+#include "../../../../External/NRD/Shaders/Include/NRD.hlsli"
+
 [ RootSignature( _RootSignature ) ]
 float4 main( VertexOutput input ) : SV_Target0
 {
@@ -45,7 +48,29 @@ float4 main( VertexOutput input ) : SV_Target0
   }
   else
   {
-    texel = texture.SampleLevel( textureSampler, input.texcoord, mipLevel );
+    switch ( debugOutput )
+    {
+      case DebugOutput::AO:
+      case DebugOutput::Reflection:
+      case DebugOutput::GI:
+        texel = texture.SampleLevel( textureSampler, input.texcoord * float2( 0.5, 1 ), mipLevel );
+        break;
+      default: texel = texture.SampleLevel( textureSampler, input.texcoord, mipLevel );  break;
+    }
+
+    switch ( debugOutput )
+    {
+      case DebugOutput::AO:                 texel = float4( texel.rrr, 1 ); break;
+      case DebugOutput::DenoisedAO:         texel = float4( texel.rrr, 1 ); break;
+      case DebugOutput::Shadow:             texel = float4( texel.rrr, 1 ); break;
+      case DebugOutput::DenoisedShadow:     texel = float4( lerp( SIGMA_BackEnd_UnpackShadow( texel ).yzw, 1.xxx, SIGMA_BackEnd_UnpackShadow( texel ).x ), 1 ); break;
+      case DebugOutput::Reflection:         texel = float4( REBLUR_BackEnd_UnpackRadianceAndNormHitDist( texel ).rgb, 1 ); break;
+      case DebugOutput::DenoisedReflection: texel = float4( REBLUR_BackEnd_UnpackRadianceAndNormHitDist( texel ).rgb, 1 ); break;
+      case DebugOutput::GI:                 texel = float4( REBLUR_BackEnd_UnpackRadianceAndNormHitDist( texel ).rgb, 1 ); break;
+      case DebugOutput::DenoisedGI:         texel = float4( REBLUR_BackEnd_UnpackRadianceAndNormHitDist( texel ).rgb, 1 ); break;
+      default: break;
+    }
+    
     isMapped = true;
   }
   

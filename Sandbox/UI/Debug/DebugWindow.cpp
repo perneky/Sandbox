@@ -27,6 +27,36 @@ static const char* GetUpscalingModeName( Upscaling::Quality quality )
   }
 }
 
+static const char* GetDebugOutputName( DebugOutput debugOutput )
+{
+  switch ( debugOutput )
+  {
+  case DebugOutput::None:
+    return "None";
+  case DebugOutput::Denoiser:
+    return "Denoiser debug ouput";
+  case DebugOutput::AO:
+    return "Ambient occlusion";
+  case DebugOutput::DenoisedAO:
+    return "Denoised ambient occlusion";
+  case DebugOutput::Shadow:
+    return "Shadow";
+  case DebugOutput::DenoisedShadow:
+    return "Denoised shadow";
+  case DebugOutput::Reflection:
+    return "Reflection";
+  case DebugOutput::DenoisedReflection:
+    return "Denoised reflection";
+  case DebugOutput::GI:
+    return "Global illumination";
+  case DebugOutput::DenoisedGI:
+    return "Denoised global illumination";
+  default:
+    assert( false );
+    return " ";
+  }
+}
+
 DebugWindow::DebugWindow()
 {
 }
@@ -60,21 +90,41 @@ void DebugWindow::Tick( CommandList& commandList, double timeElapsed )
 
     if ( ImGui::BeginCombo( "Upscaling mode", GetUpscalingModeName( upscalingQuality ), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightRegular ) )
     {
-#define FDM( m ) if ( ImGui::Selectable( GetUpscalingModeName( Upscaling::Quality::m ), upscalingQuality == Upscaling::Quality::m ) ) upscalingQuality = Upscaling::Quality::m;
-      //FDM( UltraQuality );
-      FDM( Off );
-      FDM( Quality );
-      FDM( Balanced );
-      FDM( Performance );
-      FDM( UltraPerformance );
-#undef FDM
+      #define FDM( m ) if ( ImGui::Selectable( GetUpscalingModeName( Upscaling::Quality::m ), upscalingQuality == Upscaling::Quality::m ) ) upscalingQuality = Upscaling::Quality::m;
+        //FDM( UltraQuality );
+        FDM( Off );
+        FDM( Quality );
+        FDM( Balanced );
+        FDM( Performance );
+        FDM( UltraPerformance );
+      #undef FDM
       ImGui::EndCombo();
     }
 
     ImGui::Separator();
 
-    ImGui::Checkbox( "Show denoiser debug layer", &showDenoiserDebugLayer );
     ImGui::Checkbox( "Freeze culling", &freezeCulling );
+
+    ImGui::Separator();
+
+    if ( ImGui::BeginCombo( "Debug output", GetDebugOutputName( debugOutput ), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightRegular ) )
+    {
+      #define FDM( m ) if ( ImGui::Selectable( GetDebugOutputName( DebugOutput::m ), debugOutput == DebugOutput::m ) ) debugOutput = DebugOutput::m;
+        FDM( None );
+        FDM( Denoiser );
+        #if USE_AO_WITH_GI
+          FDM( AO );
+          FDM( DenoisedAO );
+        #endif // USE_AO_WITH_GI
+        FDM( Shadow );
+        FDM( DenoisedShadow );
+        FDM( Reflection );
+        FDM( DenoisedReflection );
+        FDM( GI );
+        FDM( DenoisedGI );
+#undef FDM
+      ImGui::EndCombo();
+    }
 
     ImGui::Separator();
 
@@ -115,11 +165,6 @@ float DebugWindow::GetManualExposure() const
   return manualExposure;
 }
 
-bool DebugWindow::GetShowDenoiserDebugLayer() const
-{
-  return showDenoiserDebugLayer;
-}
-
 int DebugWindow::GetDebugTextureIndex() const
 {
   return renderTexture ? renderTextureIndex : -1;
@@ -128,4 +173,9 @@ int DebugWindow::GetDebugTextureIndex() const
 bool DebugWindow::GetFreezeCulling() const
 {
   return freezeCulling;
+}
+
+DebugOutput DebugWindow::GetDebugOutput() const
+{
+  return debugOutput;
 }

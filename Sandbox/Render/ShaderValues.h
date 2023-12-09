@@ -68,6 +68,8 @@ enum Texture2DSlots
   AOTextureUAVSlot,
   ReflectionTextureSRVSlot,
   ReflectionTextureUAVSlot,
+  GITextureSRVSlot,
+  GITextureUAVSlot,
   MotionVectorsSlot,
   TextureMipSlot,
   GeometryIdsSlot,
@@ -94,6 +96,8 @@ enum Texture2DSlots
   DenoiseViewZUAVSlot,
   DenoiseNormalRoughnessSRVSlot,
   DenoiseNormalRoughnessUAVSlot,
+  DenoiseFilteredGISRVSlot,
+  DenoiseFilteredGIUAVSlot,
   DenoiseFilteredAOSRVSlot,
   DenoiseFilteredAOUAVSlot,
   DenoiseFilteredShadowSRVSlot,
@@ -131,7 +135,7 @@ enum Texture2DSlots
   Texture2DSlotCount
 };
 
-#define Texture2DSlotCountStr "62"
+#define Texture2DSlotCountStr "66"
 
 #ifdef __cplusplus
   static_assert( Texture2DSlotCount < Engine2DResourceBaseSlot + Engine2DResourceCount, "Too many engine 2D textures!" );
@@ -226,6 +230,10 @@ enum BufferSlots
 #define USE_REVERSE_PROJECTION 1
 
 #define MAX_ACCUM_DENOISE_FRAMES 30
+
+#define GI_MAX_ITERATIONS 3
+
+#define USE_AO_WITH_GI 0
 
 #define RandomTextureSize  128
 #define RandomTextureScale 0.1

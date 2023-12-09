@@ -82,6 +82,7 @@ enum class PixelFormat : uint32_t
   RGBA1010102U,
   RGB323232F,
   RGBA32323232F,
+  RGB111110F,
   RG1616F,
   RG1616U,
   R16F,

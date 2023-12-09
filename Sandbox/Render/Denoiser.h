@@ -13,10 +13,11 @@ struct Denoiser
 {
   struct DenoiseResult
   {
-    Resource* ambientOcclusion = nullptr;
-    Resource* shadow           = nullptr;
-    Resource* reflection       = nullptr;
-    Resource* validation       = nullptr;
+    Resource* globalIllumination = nullptr;
+    Resource* ambientOcclusion   = nullptr;
+    Resource* shadow             = nullptr;
+    Resource* reflection         = nullptr;
+    Resource* validation         = nullptr;
   };
 
   using TriangleSetupCallback = eastl::function< int( ComputeShader&, CommandList& ) >;
@@ -30,7 +31,8 @@ struct Denoiser
   virtual void Preprocess( CommandList& commandList, TriangleSetupCallback triangleSetupCallback, float nearZ, float farZ ) = 0;
   virtual DenoiseResult Denoise( CommandAllocator& commandAllocator
                                , CommandList& commandList
-                               , Resource& aoTexture
+                               , Resource& giTexture
+                               , Resource* aoTexture
                                , Resource& shadowTexture
                                , Resource& shadowTransTexture
                                , Resource& reflectionTexture

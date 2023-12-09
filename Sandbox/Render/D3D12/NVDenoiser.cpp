@@ -18,9 +18,10 @@ namespace nri { static const uint32_t WHOLE_DEVICE_GROUP = nri::ALL_NODES; }
 #include "NRD.h"
 #include "NRDIntegration.hpp"
 
-static constexpr uint32_t AmbientOcclusionId = 1;
-static constexpr uint32_t ShadowId           = 2;
-static constexpr uint32_t ReflectionId       = 3;
+static constexpr uint32_t AmbientOcclusionId   = 1;
+static constexpr uint32_t ShadowId             = 2;
+static constexpr uint32_t ReflectionId         = 3;
+static constexpr uint32_t GlobalIlluminationId = 4;
 
 static constexpr nrd::HitDistanceParameters hitDistParams = {};
 
@@ -29,6 +30,7 @@ enum InternalTextures
   Motion3D,
   NormalRoughness,
   ViewZ,
+  FilteredGI,
   FilteredAO,
   FilteredShadow,
   FilteredReflection,
@@ -59,9 +61,10 @@ NVDenoiser::NVDenoiser( Device& device, CommandQueue& commandQueue, CommandList&
 
   const nrd::DenoiserDesc denoiserDescs[] =
   {
-    { AmbientOcclusionId, nrd::Denoiser::REBLUR_DIFFUSE_OCCLUSION,  uint16_t( width ), uint16_t( height ) },
-    { ShadowId,           nrd::Denoiser::SIGMA_SHADOW_TRANSLUCENCY, uint16_t( width ), uint16_t( height ) },
-    { ReflectionId,       nrd::Denoiser::REBLUR_SPECULAR,           uint16_t( width ), uint16_t( height ) },
+    { AmbientOcclusionId,   nrd::Denoiser::REBLUR_DIFFUSE_OCCLUSION,  uint16_t( width ), uint16_t( height ) },
+    { ShadowId,             nrd::Denoiser::SIGMA_SHADOW_TRANSLUCENCY, uint16_t( width ), uint16_t( height ) },
+    { ReflectionId,         nrd::Denoiser::REBLUR_SPECULAR,           uint16_t( width ), uint16_t( height ) },
+    { GlobalIlluminationId, nrd::Denoiser::REBLUR_DIFFUSE,            uint16_t( width ), uint16_t( height ) },
   };
 
   nrd::InstanceCreationDesc instanceCreationDesc = {};
@@ -74,6 +77,7 @@ NVDenoiser::NVDenoiser( Device& device, CommandQueue& commandQueue, CommandList&
   internalTextures[ InternalTextures::Motion3D           ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseMotionSRVSlot,             DenoiseMotionUAVSlot,             1, L"DenoiseMotion" );
   internalTextures[ InternalTextures::ViewZ              ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::R32F,          false, DenoiseViewZSRVSlot,              DenoiseViewZUAVSlot,              1, L"DenoiseViewZ" );
   internalTextures[ InternalTextures::NormalRoughness    ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA8888UN,    false, DenoiseNormalRoughnessSRVSlot,    DenoiseNormalRoughnessUAVSlot,    1, L"NormalRoughness" );
+  internalTextures[ InternalTextures::FilteredGI         ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseFilteredGISRVSlot,         DenoiseFilteredGIUAVSlot,         1, L"FilteredGI" );
   internalTextures[ InternalTextures::FilteredAO         ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::R16F,          false, DenoiseFilteredAOSRVSlot,         DenoiseFilteredAOUAVSlot,         1, L"FilteredAO" );
   internalTextures[ InternalTextures::FilteredShadow     ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA8888UN,    false, DenoiseFilteredShadowSRVSlot,     DenoiseFilteredShadowUAVSlot,     1, L"FilteredShadow" );
   internalTextures[ InternalTextures::FilteredReflection ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseFilteredReflectionSRVSlot, DenoiseFilteredReflectionUAVSlot, 1, L"FilteredReflection" );
@@ -101,6 +105,11 @@ NVDenoiser::NVDenoiser( Device& device, CommandQueue& commandQueue, CommandList&
   nriInterface->CreateTextureD3D12( *nriDevice, textureDesc, (nri::Texture*&)nrdInternalTextures[ InternalTextures::NormalRoughness ].texture );
   nrdInternalTextures[ InternalTextures::NormalRoughness ].nextAccess = nri::AccessBits::SHADER_RESOURCE;
   nrdInternalTextures[ InternalTextures::NormalRoughness ].nextLayout = nri::TextureLayout::SHADER_RESOURCE;
+
+  textureDesc.d3d12Resource = static_cast< D3DResource& >( *internalTextures[ InternalTextures::FilteredGI ] ).GetD3DResource();
+  nriInterface->CreateTextureD3D12( *nriDevice, textureDesc, (nri::Texture*&)nrdInternalTextures[ InternalTextures::FilteredGI ].texture );
+  nrdInternalTextures[ InternalTextures::FilteredGI ].nextAccess = nri::AccessBits::SHADER_RESOURCE_STORAGE;
+  nrdInternalTextures[ InternalTextures::FilteredGI ].nextLayout = nri::TextureLayout::GENERAL;
 
   textureDesc.d3d12Resource = static_cast< D3DResource& >( *internalTextures[ InternalTextures::FilteredAO ] ).GetD3DResource();
   nriInterface->CreateTextureD3D12( *nriDevice, textureDesc, (nri::Texture*&)nrdInternalTextures[ InternalTextures::FilteredAO ].texture );
@@ -192,7 +201,8 @@ void NVDenoiser::Preprocess( CommandList& commandList, TriangleSetupCallback tri
 
 Denoiser::DenoiseResult NVDenoiser::Denoise( CommandAllocator& commandAllocator
                                            , CommandList& commandList
-                                           , Resource& aoTexture
+                                           , Resource& giTexture
+                                           , Resource* aoTexture
                                            , Resource& shadowTexture
                                            , Resource& shadowTransTexture
                                            , Resource& reflectionTexture
@@ -205,14 +215,18 @@ Denoiser::DenoiseResult NVDenoiser::Denoise( CommandAllocator& commandAllocator
 {
   GPUSection gpuSection( commandList, L"Denoiser denoise" );
 
-  commandList.ChangeResourceState( { { aoTexture, ResourceStateBits::NonPixelShaderInput }
+  commandList.ChangeResourceState( { { giTexture, ResourceStateBits::NonPixelShaderInput }
                                    , { shadowTexture, ResourceStateBits::NonPixelShaderInput }
                                    , { shadowTransTexture, ResourceStateBits::NonPixelShaderInput }
                                    , { reflectionTexture, ResourceStateBits::NonPixelShaderInput }
                                    , { *internalTextures[ InternalTextures::FilteredAO ], ResourceStateBits::UnorderedAccess }
+                                   , { *internalTextures[ InternalTextures::FilteredGI ], ResourceStateBits::UnorderedAccess }
                                    , { *internalTextures[ InternalTextures::FilteredShadow ], ResourceStateBits::UnorderedAccess }
                                    , { *internalTextures[ InternalTextures::FilteredReflection ], ResourceStateBits::UnorderedAccess }
                                    , { *internalTextures[ InternalTextures::Validation ], ResourceStateBits::UnorderedAccess } } );
+
+  if ( aoTexture )
+    commandList.ChangeResourceState( *aoTexture, ResourceStateBits::NonPixelShaderInput );
 
   // Prepare
   nri::CommandBufferD3D12Desc commandBufferDesc = {};
@@ -222,6 +236,7 @@ Denoiser::DenoiseResult NVDenoiser::Denoise( CommandAllocator& commandAllocator
   nri::CommandBuffer* nriCommandBuffer = nullptr;
   nriInterface->CreateCommandBufferD3D12( *nriDevice, commandBufferDesc, nriCommandBuffer );
 
+  nri::TextureTransitionBarrierDesc giDesc;
   nri::TextureTransitionBarrierDesc aoDesc;
   nri::TextureTransitionBarrierDesc shadowDesc;
   nri::TextureTransitionBarrierDesc shadowTransDesc;
@@ -229,10 +244,18 @@ Denoiser::DenoiseResult NVDenoiser::Denoise( CommandAllocator& commandAllocator
 
   nri::TextureD3D12Desc textureDesc = {};
 
-  textureDesc.d3d12Resource = static_cast< D3DResource& >( aoTexture ).GetD3DResource();
-  nriInterface->CreateTextureD3D12( *nriDevice, textureDesc, (nri::Texture*&)aoDesc.texture );
-  aoDesc.nextAccess = nri::AccessBits::SHADER_RESOURCE;
-  aoDesc.nextLayout = nri::TextureLayout::SHADER_RESOURCE;
+  textureDesc.d3d12Resource = static_cast< D3DResource& >( giTexture ).GetD3DResource();
+  nriInterface->CreateTextureD3D12( *nriDevice, textureDesc, (nri::Texture*&)giDesc.texture );
+  giDesc.nextAccess = nri::AccessBits::SHADER_RESOURCE;
+  giDesc.nextLayout = nri::TextureLayout::SHADER_RESOURCE;
+
+  if ( aoTexture )
+  {
+    textureDesc.d3d12Resource = static_cast< D3DResource& >( *aoTexture ).GetD3DResource();
+    nriInterface->CreateTextureD3D12( *nriDevice, textureDesc, (nri::Texture*&)aoDesc.texture );
+    aoDesc.nextAccess = nri::AccessBits::SHADER_RESOURCE;
+    aoDesc.nextLayout = nri::TextureLayout::SHADER_RESOURCE;
+  }
 
   textureDesc.d3d12Resource = static_cast< D3DResource& >( shadowTexture ).GetD3DResource();
   nriInterface->CreateTextureD3D12( *nriDevice, textureDesc, (nri::Texture*&)shadowDesc.texture );
@@ -272,45 +295,54 @@ Denoiser::DenoiseResult NVDenoiser::Denoise( CommandAllocator& commandAllocator
   reblurSettings.hitDistanceParameters  = hitDistParams;
   reblurSettings.maxAccumulatedFrameNum = MAX_ACCUM_DENOISE_FRAMES;
   reblurSettings.checkerboardMode       = nrd::CheckerboardMode::WHITE;
-  nrdInterface->SetDenoiserSettings( AmbientOcclusionId, &reblurSettings );
-  nrdInterface->SetDenoiserSettings( ReflectionId,       &reblurSettings );
+  nrdInterface->SetDenoiserSettings( AmbientOcclusionId,   &reblurSettings );
+  nrdInterface->SetDenoiserSettings( ReflectionId,         &reblurSettings );
+  nrdInterface->SetDenoiserSettings( GlobalIlluminationId, &reblurSettings );
 
   nrd::SigmaSettings sigmaSettings;
   nrdInterface->SetDenoiserSettings( ShadowId, &sigmaSettings );
 
   NrdUserPool userPool = {};
   {
-    NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_DIFF_HITDIST,           { &aoDesc, nri::Format::R8_UNORM } );
+    if ( aoTexture )
+      NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_DIFF_HITDIST, { &aoDesc, nri::Format::R8_UNORM } );
+
     NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_SHADOWDATA,             { &shadowDesc, nri::Format::RG16_SFLOAT } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_SHADOW_TRANSLUCENCY,    { &shadowTransDesc, nri::Format::RGBA8_UNORM } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_SPEC_RADIANCE_HITDIST,  { &reflectionDesc, nri::Format::RGBA16_SFLOAT } );
+    NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_DIFF_RADIANCE_HITDIST,  { &giDesc, nri::Format::RGBA16_SFLOAT } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_MV,                     { &nrdInternalTextures[ InternalTextures::Motion3D ], nri::Format::RGBA16_SFLOAT } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_NORMAL_ROUGHNESS,       { &nrdInternalTextures[ InternalTextures::NormalRoughness ], nri::Format::RGBA8_UNORM } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::IN_VIEWZ,                  { &nrdInternalTextures[ InternalTextures::ViewZ ], nri::Format::R32_SFLOAT } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::OUT_DIFF_HITDIST,          { &nrdInternalTextures[ InternalTextures::FilteredAO ], nri::Format::R16_SFLOAT } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::OUT_SHADOW_TRANSLUCENCY,   { &nrdInternalTextures[ InternalTextures::FilteredShadow ], nri::Format::RGBA8_UNORM } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::OUT_SPEC_RADIANCE_HITDIST, { &nrdInternalTextures[ InternalTextures::FilteredReflection ], nri::Format::RGBA16_SFLOAT } );
+    NrdIntegration_SetResource( userPool, nrd::ResourceType::OUT_DIFF_RADIANCE_HITDIST, { &nrdInternalTextures[ InternalTextures::FilteredGI ], nri::Format::RGBA16_SFLOAT } );
     NrdIntegration_SetResource( userPool, nrd::ResourceType::OUT_VALIDATION,            { &nrdInternalTextures[ InternalTextures::Validation ], nri::Format::RGBA8_UNORM } );
   };
 
-  const nrd::Identifier denoisers[] = { AmbientOcclusionId, ReflectionId, ShadowId };
+  const nrd::Identifier denoisers[] = { GlobalIlluminationId, ReflectionId, ShadowId, AmbientOcclusionId };
   
-  nrdInterface->Denoise( denoisers, _countof( denoisers ), *nriCommandBuffer, userPool );
+  nrdInterface->Denoise( denoisers, aoTexture ? _countof( denoisers ) : _countof( denoisers ) - 1, *nriCommandBuffer, userPool );
 
   // Cleanup
-  nriInterface->DestroyTexture( (nri::Texture&)*aoDesc.texture );
+  if ( aoTexture )
+    nriInterface->DestroyTexture( (nri::Texture&)*aoDesc.texture );
+  nriInterface->DestroyTexture( (nri::Texture&)*giDesc.texture );
   nriInterface->DestroyTexture( (nri::Texture&)*shadowDesc.texture );
   nriInterface->DestroyTexture( (nri::Texture&)*shadowTransDesc.texture );
   nriInterface->DestroyTexture( (nri::Texture&)*reflectionDesc.texture );
   nriInterface->DestroyCommandBuffer( *nriCommandBuffer );
 
   commandList.ChangeResourceState( { { *internalTextures[ InternalTextures::FilteredAO ],         ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput }
+                                   , { *internalTextures[ InternalTextures::FilteredGI ],         ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput }
                                    , { *internalTextures[ InternalTextures::FilteredShadow ],     ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput }
                                    , { *internalTextures[ InternalTextures::FilteredReflection ], ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput }
                                    , { *internalTextures[ InternalTextures::Validation ],         ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput } } );
 
-  return DenoiseResult { .ambientOcclusion = internalTextures[ InternalTextures::FilteredAO ].get()
-                       , .shadow           = internalTextures[ InternalTextures::FilteredShadow ].get()
-                       , .reflection       = internalTextures[ InternalTextures::FilteredReflection ].get()
-                       , .validation       = internalTextures[ InternalTextures::Validation ].get() };
+  return DenoiseResult { .globalIllumination = internalTextures[ InternalTextures::FilteredGI ].get()
+                       , .ambientOcclusion   = aoTexture ? internalTextures[ InternalTextures::FilteredAO ].get() : nullptr
+                       , .shadow             = internalTextures[ InternalTextures::FilteredShadow ].get()
+                       , .reflection         = internalTextures[ InternalTextures::FilteredReflection ].get()
+                       , .validation         = internalTextures[ InternalTextures::Validation ].get() };
 }

@@ -19,6 +19,8 @@ struct CommandSignature;
 struct CommandAllocator;
 struct Denoiser;
 
+enum class DebugOutput : uint32_t;
+
 class Scene
 {
 public:
@@ -33,8 +35,8 @@ public:
              , CommandList& commandList
              , Resource& backBuffer
              , bool useTextureFeedback
-             , bool showDenoiserDebugLayer
-             , bool freezeCulling );
+             , bool freezeCulling
+             , DebugOutput debugOutput );
 
   Node* FindNodeByName( const char* name );
 
@@ -64,6 +66,7 @@ private:
   void RenderDepth( CommandList& commandList );
   void RenderShadow( CommandList& commandList );
   void RenderAO( CommandList& commandList );
+  void RenderGI( CommandList& commandList );
   void Denoise( CommandAllocator& commandAllocator, CommandList& commandList, float jitterX, float jitterY, bool showDenoiserDebugLayer );
   void RenderReflection( CommandList& commandList );
   void RenderDirectLighting( CommandList& commandList );
@@ -72,7 +75,7 @@ private:
   void PostProcessing( CommandList& commandList, Resource& backBuffer );
   void AdaptExposure( CommandList& commandList );
   void Upscale( CommandList& commandList, Resource& backBuffer );
-  void RenderDenoiserDebugLayer( CommandList& commandList );
+  void RenderDebugLayer( CommandList& commandList, DebugOutput debugOutput );
 
   eastl::wstring error;
 
@@ -109,8 +112,8 @@ private:
   eastl::unique_ptr< Resource > depthTexture;
 
   eastl::unique_ptr< Resource > aoTexture;
-
   eastl::unique_ptr< Resource > reflectionTexture;
+  eastl::unique_ptr< Resource > giTexture;
 
   eastl::unique_ptr< Resource > debugTexture;
   eastl::unique_ptr< Resource > motionVectorTexture;
@@ -153,6 +156,7 @@ private:
   eastl::unique_ptr< ComputeShader > generateHistogramShader;
   eastl::unique_ptr< ComputeShader > adaptExposureShader;
 
+  eastl::unique_ptr< RTShaders > traceGIShader;
   eastl::unique_ptr< RTShaders > traceAOShader;
   eastl::unique_ptr< RTShaders > traceShadowShader;
   eastl::unique_ptr< RTShaders > traceReflectionShader;
@@ -167,6 +171,7 @@ private:
   Resource* denoisedAOTexture = nullptr;
   Resource* denoisedShadowTexture = nullptr;
   Resource* denoisedReflectionTexture = nullptr;
+  Resource* denoisedGITexture = nullptr;
   Resource* denoiserValidationTexture = nullptr;
 
   eastl::unique_ptr< Upscaling > upscaling;

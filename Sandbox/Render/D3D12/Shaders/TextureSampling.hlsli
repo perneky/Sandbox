@@ -44,7 +44,7 @@ half4 SampleTexture( uint index, float2 tc )
   #if ENABLE_TEXTURE_STREAMING
     return scene2DMipTailTextures[ index ].SampleLevel( anisotropicWrapSampler, tc, 0 );
   #else
-    return scene2DTextures[ index ].SampleLevel( scene2DSampler, tc, 4 );
+    return scene2DTextures[ index ].SampleLevel( anisotropicWrapSampler, tc, 4 );
   #endif
 }
 

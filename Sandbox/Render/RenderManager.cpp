@@ -83,7 +83,7 @@ TextureStreamer::UpdateResult RenderManager::UpdateAfterFrame( CommandList& comm
   #endif
 }
 
-void RenderManager::RenderDebugTexture( CommandList& commandList, int texIndex, int screenWidth, int screenHeight )
+void RenderManager::RenderDebugTexture( CommandList& commandList, int texIndex, int screenWidth, int screenHeight, DebugOutput debugOutput )
 {
   struct
   {

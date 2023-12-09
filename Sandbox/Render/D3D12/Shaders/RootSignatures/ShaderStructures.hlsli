@@ -90,6 +90,7 @@ struct MaterialSlot
   };
 
   half4 albedo;
+  half4 emissive;
   half2 roughness_metallic;
   uint  flags;
   int   albedoTextureIndex;
@@ -208,6 +209,14 @@ struct ReflectionPayload
   float  distance;
 };
 
+struct GIPayload
+{
+  float3 color;
+  float  distance;
+  uint   iteration;
+  float  seed;
+};
+
 struct AOPayload
 {
   float t;
@@ -231,6 +240,20 @@ static const float3 cubeUpDir[] =
   float3( 0,  0,  1 ),
   float3( 0,  1,  0 ),
   float3( 0,  1,  0 ),
+};
+
+enum class DebugOutput : uint
+{
+  None,
+  Denoiser,
+  AO,
+  DenoisedAO,
+  Shadow,
+  DenoisedShadow,
+  Reflection,
+  DenoisedReflection,
+  GI,
+  DenoisedGI,
 };
 
 #ifdef __cplusplus

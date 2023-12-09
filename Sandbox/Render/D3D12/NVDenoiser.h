@@ -28,7 +28,8 @@ public:
   void Preprocess( CommandList& commandList, TriangleSetupCallback triangleSetupCallback, float nearZ, float farZ ) override;
   DenoiseResult Denoise( CommandAllocator& commandAllocator
                        , CommandList& commandList
-                       , Resource& aoTexture
+                       , Resource& giTexture
+                       , Resource* aoTexture
                        , Resource& shadowTexture
                        , Resource& shadowTransTexture
                        , Resource& reflectionTexture
@@ -44,7 +45,7 @@ private:
   eastl::unique_ptr< NrdIntegration > nrdInterface;
   nri::Device*                        nriDevice;
 
-  eastl::unique_ptr< Resource > internalTextures[ 7 ];
+  eastl::unique_ptr< Resource > internalTextures[ 8 ];
   eastl::vector< nri::TextureTransitionBarrierDesc > nrdInternalTextures;
 
   eastl::unique_ptr< ComputeShader > preparationShader;

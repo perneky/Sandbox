@@ -18,7 +18,7 @@ half4 main( VertexOutput input ) : SV_Target0
     return 0;
   
   half3 albedo    = materials[ attribs.materialIndex ].albedo.xyz;
-  half3 emissive  = 0;
+  half3 emissive  = materials[ attribs.materialIndex ].emissive.xyz;
   half  roughness = materials[ attribs.materialIndex ].roughness_metallic.x;
   half  metallic  = materials[ attribs.materialIndex ].roughness_metallic.y;
 
@@ -33,20 +33,23 @@ half4 main( VertexOutput input ) : SV_Target0
   
   half3 worldSurfaceNormal = CalcSurfaceNormal( materials[ attribs.materialIndex ].normalTextureIndex, attribs.texcoord, attribs.worldNormal, attribs.worldTangent, attribs.worldBitangent, attribs.textureMip, tci, frameParams.feedbackPhase );
 
-  half3 probeGI = 0.5;
-
-  half  ao         = aoTexture[ input.screenPosition.xy ];
+  half3 gi         = half3( REBLUR_BackEnd_UnpackRadianceAndNormHitDist( giTexture[ input.screenPosition.xy ] ).rgb );
   half4 shadowData = SIGMA_BackEnd_UnpackShadow( shadowTexture[ input.screenPosition.xy ] );
   half3 shadow     = lerp( shadowData.yzw, 1.0, shadowData.x );
 
-  ao = lerp( 0.3, 1.0, ao );
+  #if USE_AO_WITH_GI
+    half ao = aoTexture[ input.screenPosition.xy ];
+    ao = lerp( 0.3, 1.0, ao );
+  #else
+    half ao = 1;
+  #endif
   
   half3 tracedDirectLighting = TraceDirectLighting( albedo, roughness, metallic, attribs.worldPosition, worldSurfaceNormal, shadow, frameParams.cameraPosition.xyz, frameParams.lightCount );
 
   half3 diffuseIBL        = 0;
   half3 specularIBL       = 0;
   half3 surfaceReflection = 0;
-  TraceIndirectLighting( probeGI
+  TraceIndirectLighting( gi
                        , brdfLUT
                        , albedo
                        , roughness

@@ -32,7 +32,7 @@ half3 CalcReflection( float3 worldPosition, half3 worldNormal )
 
     half3 surfaceWorldNormal = hitGeom.worldNormal;
     half3 surfaceAlbedo      = material.albedo.rgb;
-    half3 surfaceEmissive    = 0;
+    half3 surfaceEmissive    = material.emissive.rgb;
     half  surfaceRoughness   = material.roughness_metallic.x;
     half  surfaceMetallic    = material.roughness_metallic.y;
 
@@ -68,7 +68,7 @@ float4 main( VertexOutput input, bool isFrontFace : SV_IsFrontFace ) : SV_Target
   half3 surfaceNormal = CalcSurfaceNormal( materials[ materialIndex ].albedoTextureIndex, input.texcoord, input.worldNormal.xyz, input.worldTangent.xyz, input.worldBitangent.xyz, 0 );
   half3 albedo        = materials[ materialIndex ].albedo.rgb;
   half  alpha         = materials[ materialIndex ].albedo.a;
-  half3 emissive      = 0;
+  half3 emissive      = materials[ materialIndex ].emissive.rgb;
   half  roughness     = materials[ materialIndex ].roughness_metallic.x;
   half  metallic      = materials[ materialIndex ].roughness_metallic.y;
 
@@ -96,7 +96,7 @@ float4 main( VertexOutput input, bool isFrontFace : SV_IsFrontFace ) : SV_Target
 
   half3 probeGI = 0.5;
 
-  half3 tracedDirectLighting = TraceDirectLighting( albedo, roughness, metallic, input.worldPosition, surfaceNormal, 0, frameParams.cameraPosition.xyz, frameParams.lightCount );
+  half3 tracedDirectLighting = TraceDirectLighting( albedo, roughness, metallic, input.worldPosition, surfaceNormal, 1, frameParams.cameraPosition.xyz, frameParams.lightCount );
 
   half3 diffuseIBL        = 0;
   half3 specularIBL       = 0;

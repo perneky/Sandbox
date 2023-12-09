@@ -18,9 +18,10 @@ public:
   Upscaling::Quality GetUpscalingQuality      () const;
   bool               GetUpdateTextureStreaming() const;
   float              GetManualExposure        () const;
-  bool               GetShowDenoiserDebugLayer() const;
   int                GetDebugTextureIndex     () const;
   bool               GetFreezeCulling         () const;
+  DebugOutput        GetDebugOutput           () const;
+
 
 private:
   double   fpsAccum        = 0;
@@ -30,8 +31,6 @@ private:
   bool               useVSync         = false;
   Upscaling::Quality upscalingQuality = Upscaling::DefaultQuality;
 
-  bool showDenoiserDebugLayer = false;
-
   bool freezeCulling = false;
 
   bool renderTexture      = false;
@@ -40,4 +39,6 @@ private:
   bool updateTextureStreaming = true;
 
   float manualExposure = 1.1f;
+
+  DebugOutput debugOutput = DebugOutput::None;
 };
