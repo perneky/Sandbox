@@ -15,5 +15,5 @@ struct Factory
   virtual bool IsVRRSupported() const = 0;
 
   virtual eastl::unique_ptr< Adapter >   CreateDefaultAdapter() = 0;
-  virtual eastl::unique_ptr< Swapchain > CreateSwapchain( Device& device, CommandQueue& commandQueue, Window& window ) = 0;
+  virtual eastl::unique_ptr< Swapchain > CreateSwapchain( Device& device, CommandQueue& directQueue, Window& window ) = 0;
 };

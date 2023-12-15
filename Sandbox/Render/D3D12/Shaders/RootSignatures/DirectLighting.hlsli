@@ -45,7 +45,7 @@ SamplerState trilinearWrapSampler   : register( s0 );
 SamplerState trilinearClampSampler  : register( s1 );
 SamplerState anisotropicWrapSampler : register( s2 );
 
-#if ENABLE_TEXTURE_STREAMING
+#if TEXTURE_STREAMING_MODE != TEXTURE_STREAMING_OFF
   RWTexture2D< uint > scene2DTexturesFeedback[] : register( u0, space0 );
   RWByteAddressBuffer globalTextureFeedback     : register( u1, space1 );
 #endif

@@ -6,7 +6,7 @@
 #include "Render/CommandList.h"
 #include "Render/ShaderValues.h"
 
-void ImmediateTextureStreamer::CacheTexture( CommandQueue& commandQueue, CommandList& commandList, const eastl::wstring& path )
+void ImmediateTextureStreamer::CacheTexture( CommandQueue& directQueue, CommandList& commandList, const eastl::wstring& path )
 {
   auto& device = RenderManager::GetInstance().GetDevice();
 
@@ -38,11 +38,11 @@ Resource* ImmediateTextureStreamer::GetTexture( int index )
   return textures[ index ].get();
 }
 
-void ImmediateTextureStreamer::UpdateBeforeFrame( Device& device, CommandList& commandList )
+void ImmediateTextureStreamer::UpdateBeforeFrame( Device& device, CommandQueue& copyQueue, CommandList& commandList )
 {
 }
 
-TextureStreamer::UpdateResult ImmediateTextureStreamer::UpdateAfterFrame( Device& device, CommandQueue& commandQueue, CommandList& syncCommandList, uint64_t fence, uint32_t* globalFeedback )
+TextureStreamer::UpdateResult ImmediateTextureStreamer::UpdateAfterFrame( Device& device, CommandQueue& graphicsQueue, CommandQueue& copyQueue, CommandList& syncCommandList, uint64_t fence, uint32_t* globalFeedback )
 {
   return {};
 }

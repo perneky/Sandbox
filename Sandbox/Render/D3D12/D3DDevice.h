@@ -10,6 +10,7 @@ class D3DCommandList;
 class D3DCommandQueue;
 class D3DComputeShader;
 class D3DResource;
+class D3DMemoryHeap;
 
 namespace D3D12MA { class Allocator; }
 
@@ -33,11 +34,15 @@ public:
   eastl::unique_ptr< Resource >                 CreateBuffer( ResourceType resourceType, HeapType heapType, bool unorderedAccess, int size, int elementSize, const wchar_t* debugName ) override;
   eastl::unique_ptr< RTBottomLevelAccelerator > CreateRTBottomLevelAccelerator( CommandList& commandList, Resource& vertexBuffer, int vertexCount, int positionElementSize, int vertexStride, Resource& indexBuffer, int indexSize, int indexCount, int infoIndex, bool opaque, bool allowUpdate, bool fastBuild ) override;
   eastl::unique_ptr< RTTopLevelAccelerator >    CreateRTTopLevelAccelerator( CommandList& commandList, eastl::vector< RTInstance > instances, int slot ) override;
-  eastl::unique_ptr< Resource >                 CreateVolumeTexture( CommandList& commandList, int width, int height, int depth, const void* data, int dataSize, PixelFormat format, int slot, eastl::optional< int > uavSlot, const wchar_t* debugName ) override;
-  eastl::unique_ptr< Resource >                 Create2DTexture( CommandList& commandList, int width, int height, const void* data, int dataSize, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName ) override;
-  eastl::unique_ptr< Resource >                 CreateCubeTexture( CommandList& commandList, int width, const void* data, int dataSize, PixelFormat format, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName ) override;
+  eastl::unique_ptr< Resource >                 CreateVolumeTexture( CommandList* commandList, int width, int height, int depth, const void* data, int dataSize, PixelFormat format, int slot, eastl::optional< int > uavSlot, const wchar_t* debugName ) override;
+  eastl::unique_ptr< Resource >                 Create2DTexture( CommandList* commandList, int width, int height, const void* data, int dataSize, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName ) override;
+  eastl::unique_ptr< Resource >                 CreateCubeTexture( CommandList* commandList, int width, const void* data, int dataSize, PixelFormat format, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName ) override;
+  eastl::unique_ptr< Resource >                 CreateReserved2DTexture( int width, int height, PixelFormat format, int slot, bool mipLevels, const wchar_t* debugName ) override;
   eastl::unique_ptr< ComputeShader >            CreateComputeShader( const void* shaderData, int shaderSize, const wchar_t* debugName ) override;
+  eastl::unique_ptr< MemoryHeap >               CreateMemoryHeap( uint64_t size, const wchar_t* debugName ) override;
   eastl::unique_ptr< GPUTimeQuery >             CreateGPUTimeQuery() override;
+
+  void PreallocateTiles( CommandQueue& directQueue ) override;
 
   eastl::unique_ptr< RTShaders > CreateRTShaders( CommandList& commandList
                                               , const eastl::vector< uint8_t >& rootSignatureShaderBinary
@@ -53,7 +58,7 @@ public:
   eastl::unique_ptr< Resource > Load2DTexture( CommandList& commandList, eastl::vector< uint8_t >&& textureData, int slot, const wchar_t* debugName ) override;
   eastl::unique_ptr< Resource > LoadCubeTexture( CommandList& commandList, eastl::vector< uint8_t >&& textureData, int slot, const wchar_t* debugName ) override;
 
-  eastl::unique_ptr< Resource > Stream2DTexture( CommandQueue& commandQueue
+  eastl::unique_ptr< Resource > Stream2DTexture( CommandQueue& directQueue
                                                , CommandList& commandList
                                                , const TFFHeader& tffHeader
                                                , eastl::unique_ptr< FileLoaderFile >&& fileHandle
@@ -100,9 +105,7 @@ private:
 
   CComPtr< ID3D12Resource > CreateTileUploadBuffer( ID3D12Resource* targetTexture );
 
-  eastl::unique_ptr< D3DResource > CreateTexture( CommandList& commandList, int width, int height, int depth, int slices, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName, bool reserved = false );
-
-  void CreateStreamingReferenceTextures( CommandList& commandList );
+  eastl::unique_ptr< D3DResource > CreateTexture( CommandList* commandList, int width, int height, int depth, int slices, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName, bool reserved );
 
   CComPtr< ID3D12DeviceX > d3dDevice;
 
@@ -124,8 +127,6 @@ private:
   float textureLODBias = 0;
 
   D3D12MA::Allocator* allocator = nullptr;
-
-  eastl::vector< eastl::unique_ptr< Resource > > referenceTextures;
 
   eastl::vector_map< PixelFormat, eastl::unique_ptr< TileHeap > > tileHeaps;
 };

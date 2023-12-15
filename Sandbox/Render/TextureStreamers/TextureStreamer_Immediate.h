@@ -10,13 +10,13 @@ public:
   ImmediateTextureStreamer() = default;
   ~ImmediateTextureStreamer() = default;
 
-  void CacheTexture( CommandQueue& commandQueue, CommandList& commandList, const eastl::wstring& path ) override;
+  void CacheTexture( CommandQueue& directQueue, CommandList& commandList, const eastl::wstring& path ) override;
 
   int GetTextureSlot( const eastl::wstring& path, int* refTexutreId ) override;
   Resource* GetTexture( int index ) override;
 
-  void UpdateBeforeFrame( Device& device, CommandList& commandList ) override;
-  UpdateResult UpdateAfterFrame( Device& device, CommandQueue& commandQueue, CommandList& syncCommandList, uint64_t fence, uint32_t* globalFeedback ) override;
+  void UpdateBeforeFrame( Device& device, CommandQueue& copyQueue, CommandList& commandList ) override;
+  UpdateResult UpdateAfterFrame( Device& device, CommandQueue& graphicsQueue, CommandQueue& copyQueue, CommandList& syncCommandList, uint64_t fence, uint32_t* globalFeedback ) override;
 
   int Get2DTextureCount() const override;
 

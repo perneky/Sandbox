@@ -30,8 +30,9 @@ struct ProcessThread
     thread.join();
   }
 
-  void Process( CommandQueue& commandQueue
-              , Device& device
+  void Process( Device& device
+              , CommandQueue& graphicsQueue
+              , CommandQueue& copyQueue
               , CommandList& commandList
               , uint64_t fence
               , uint64_t frameNo
@@ -41,7 +42,8 @@ struct ProcessThread
               , int end )
   {
     this->device            = &device;
-    this->commandQueue      = &commandQueue;
+    this->graphicsQueue     = &graphicsQueue;
+    this->copyQueue         = &copyQueue;
     this->commandList       = &commandList;
     this->fence             = fence;
     this->frameNo           = frameNo;
@@ -71,7 +73,7 @@ struct ProcessThread
         GPUSection gpuSection( *commandList, L"TiledTextureStreamer::UpdateAfterFrame" );
 
         for ( auto iter = begin; iter != end; ++iter )
-          textures[ iter ]->EndFeedback( *commandQueue, *device, *commandList, fence, frameNo, globalFeedback[ iter ] );
+          textures[ iter ]->EndFeedback( *graphicsQueue, *copyQueue, *device, *commandList, fence, frameNo, globalFeedback[ iter ] );
       }
 
       SetEvent( isIdle );
@@ -87,11 +89,12 @@ struct ProcessThread
   HANDLE isIdle  = INVALID_HANDLE_VALUE;
   HANDLE hasWork = INVALID_HANDLE_VALUE;
 
-  Device*       device       = nullptr;
-  CommandQueue* commandQueue = nullptr;
-  CommandList*  commandList  = nullptr;
-  uint64_t      fence        = 0;
-  uint64_t      frameNo      = 0;
+  Device*       device        = nullptr;
+  CommandQueue* graphicsQueue = nullptr;
+  CommandQueue* copyQueue     = nullptr;
+  CommandList*  commandList   = nullptr;
+  uint64_t      fence         = 0;
+  uint64_t      frameNo       = 0;
 
   eastl::unique_ptr< Resource >* textures;
   uint32_t* globalFeedback;
@@ -120,7 +123,7 @@ TiledTextureStreamer::~TiledTextureStreamer()
     worker.Stop();
 }
 
-void TiledTextureStreamer::CacheTexture( CommandQueue& commandQueue, CommandList& commandList, const eastl::wstring& path )
+void TiledTextureStreamer::CacheTexture( CommandQueue& directQueue, CommandList& commandList, const eastl::wstring& path )
 {
   auto tffPath = path;
   tff( tffPath );
@@ -148,7 +151,7 @@ void TiledTextureStreamer::CacheTexture( CommandQueue& commandQueue, CommandList
   }
 
   auto fileHandle = fileLoader->OpenFile( tffPath.data() );
-  auto texture = device.Stream2DTexture( commandQueue
+  auto texture = device.Stream2DTexture( directQueue
                                        , commandList
                                        , tffHeader
                                        , eastl::move( fileHandle )
@@ -182,13 +185,13 @@ Resource* TiledTextureStreamer::GetTexture( int index )
   return textures[ index ].get();
 }
 
-void TiledTextureStreamer::UpdateBeforeFrame( Device& device, CommandList& commandList )
+void TiledTextureStreamer::UpdateBeforeFrame( Device& device, CommandQueue& copyQueue, CommandList& commandList )
 {
   for ( auto& texture : textures )
-    texture->UploadLoadedTiles( device, commandList );
+    texture->UploadLoadedTiles( device, copyQueue, commandList );
 }
 
-TextureStreamer::UpdateResult TiledTextureStreamer::UpdateAfterFrame( Device& device, CommandQueue& commandQueue, CommandList& syncCommandList, uint64_t fence, uint32_t* globalFeedback )
+TextureStreamer::UpdateResult TiledTextureStreamer::UpdateAfterFrame( Device& device, CommandQueue& graphicsQueue, CommandQueue& copyQueue, CommandList& syncCommandList, uint64_t fence, uint32_t* globalFeedback )
 {
   #if 0
     auto& renderManager = RenderManager::GetInstance();
@@ -207,7 +210,7 @@ TextureStreamer::UpdateResult TiledTextureStreamer::UpdateAfterFrame( Device& de
       commandLists[ worker ].second = renderManager.RequestCommandAllocator( CommandQueueType::Direct );
       commandLists[ worker ].first  = renderManager.CreateCommandList( *commandLists[ worker ].second, CommandQueueType::Direct );
 
-      workers[ worker ].Process( commandQueue, device, *commandLists[ worker ].first, fence, frameNo, textures.data(), globalFeedback, begin, end );
+      workers[ worker ].Process( graphicsQueue, copyQueue, device, *commandLists[ worker ].first, fence, frameNo, textures.data(), globalFeedback, begin, end );
       begin = end;
     }
 
@@ -222,7 +225,7 @@ TextureStreamer::UpdateResult TiledTextureStreamer::UpdateAfterFrame( Device& de
     // Used to run without threads
     int index = 0;
     for ( auto& texture : textures )
-      texture->EndFeedback( commandQueue, device, syncCommandList, fence, frameNo, globalFeedback[ index++ ] );
+      texture->EndFeedback( graphicsQueue, copyQueue, device, syncCommandList, fence, frameNo, globalFeedback[ index++ ] );
 
     ++frameNo;
 

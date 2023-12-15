@@ -27,7 +27,7 @@ public:
   IDXGISwapChain4* GetDXGISwapchain();
 
 private:
-  D3DSwapchain( D3DFactory& factory, D3DCommandQueue& queue, D3DDevice& device, WinAPIWindow& window );
+  D3DSwapchain( D3DFactory& factory, D3DCommandQueue& directQueue, D3DDevice& device, WinAPIWindow& window );
 
   CComPtr< IDXGISwapChain4 > dxgiSwapchain;
 

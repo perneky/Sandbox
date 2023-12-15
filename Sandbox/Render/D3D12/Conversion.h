@@ -169,12 +169,6 @@ inline int CalcBlockSize( PixelFormat format )
   }
 }
 
-inline int CalcTileMemorySize( PixelFormat pixelFormat )
-{
-  auto blockSize = CalcBlockSize( pixelFormat );
-  return blockSize * ( TileSizeWithBorder / 4 ) * ( TileSizeWithBorder / 4 );
-}
-
 inline D3D12_PRIMITIVE_TOPOLOGY_TYPE ConvertForRootSignature( PrimitiveType type )
 {
   switch ( type )

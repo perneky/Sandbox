@@ -1,6 +1,8 @@
 #include "D3DTileHeap.h"
 #include "D3DDevice.h"
 #include "D3DResource.h"
+#include "D3DCommandList.h"
+#include "D3DCommandQueue.h"
 
 static constexpr uint64_t blockSize = 64 * 1024;
 
@@ -15,11 +17,12 @@ static eastl::pair< int, int > IU( int i )
   return { i % TileCount, i / TileCount };
 }
 
-D3DTileHeap::Texture::Texture( eastl::unique_ptr< Resource >&& resource, int slot )
+D3DTileHeap::Texture::Texture( eastl::unique_ptr< Resource >&& resource, eastl::unique_ptr< MemoryHeap >&& heap )
   : resource( eastl::forward< eastl::unique_ptr< Resource > >( resource ) )
-  , slot( slot )
-  , freeTileCount( TileCount * TileCount )
+  , heap( eastl::forward< eastl::unique_ptr< MemoryHeap > >( heap ) )
+  , freeTileCount( TileCount* TileCount )
 {
+  usage.resize( freeTileCount );
   ZeroMemory( usage.data(), usage.size() );
 }
 
@@ -29,24 +32,25 @@ D3DTileHeap::D3DTileHeap( D3DDevice& device, PixelFormat pixelFormat, const wcha
   InitializeCriticalSectionAndSpinCount( &allocationLock, 4000 );
 }
 
-D3DTileHeap::Texture* D3DTileHeap::AllocateTexture( Device& device, CommandList& commandList )
+D3DTileHeap::Texture* D3DTileHeap::AllocateTexture( Device& device, CommandQueue& directQueue )
 {
   int slot = nextSlot++;
 
-  auto texture = device.Create2DTexture( commandList
-                                       , TileTextureSize
-                                       , TileTextureSize
-                                       , nullptr
-                                       , 0
-                                       , pixelFormat
-                                       , false
-                                       , Engine2DTileTexturesBaseSlot + slot
-                                       , eastl::nullopt
-                                       , false
-                                       , L"TileHeapTexture" );
+  auto heap    = device.CreateMemoryHeap( TileCount * TileCount * D3D12_TILED_RESOURCE_TILE_SIZE_IN_BYTES, L"Tile heap memory" );
+  auto texture = device.CreateReserved2DTexture( TileCount * CalcTileWidth( pixelFormat )
+                                               , TileCount * CalcTileHeight( pixelFormat )
+                                               , pixelFormat
+                                               , Engine2DTileTexturesBaseSlot + slot
+                                               , false
+                                               , L"TileHeapTexture" );
+
+  // Map the heap to all the tiles
+  for ( int ty = 0; ty < TileCount; ++ty )
+    for ( int tx = 0; tx < TileCount; ++tx )
+      directQueue.UpdateTileMapping( *texture, tx, ty, 0, heap.get(), ty * TileCount + tx );
 
   auto texPtr = texture.get();
-  auto iter   = textures.emplace( texPtr, Texture( eastl::move( texture ), slot ) );
+  auto iter = textures.emplace( texPtr, Texture( eastl::move( texture ), eastl::move( heap ) ) );
 
   return &iter.first->second;
 }
@@ -56,13 +60,24 @@ D3DTileHeap::~D3DTileHeap()
   DeleteCriticalSection( &allocationLock );
 }
 
-TileHeap::Allocation D3DTileHeap::alloc( Device& device, CommandList& commandList )
+void D3DTileHeap::prealloc( Device& device, CommandQueue& directQueue, int sizeMB )
+{
+  int64_t sizeByte = sizeMB * 1024 * 1024;
+
+  while ( sizeByte > 0 )
+  {
+    auto texture = AllocateTexture( device, directQueue );
+    sizeByte -= texture->resource->GetVirtualAllocationSize();
+  }
+}
+
+TileHeap::Allocation D3DTileHeap::alloc( Device& device, CommandQueue& directQueue )
 {
   EnterCriticalSection( &allocationLock );
   auto unlock = eastl::make_finally( [this]() { LeaveCriticalSection( &allocationLock ); } );
 
   Allocation allocation;
-  allocation.heap = this;
+  allocation.tileHeap = this;
 
   // Find an empty slot
   for ( auto& texture : textures )
@@ -79,7 +94,7 @@ TileHeap::Allocation D3DTileHeap::alloc( Device& device, CommandList& commandLis
         --texture.second.freeTileCount;
 
         allocation.texture     = texture.second.resource.get();
-        allocation.textureSlot = texture.second.slot;
+        allocation.memoryHeap  = texture.second.heap.get();
         allocation.x           = IU( cnt ).first;
         allocation.y           = IU( cnt ).second;
 
@@ -92,14 +107,14 @@ TileHeap::Allocation D3DTileHeap::alloc( Device& device, CommandList& commandLis
     assert( false );
   }
 
-  auto newTexture = AllocateTexture( device, commandList );
+  auto newTexture = AllocateTexture( device, directQueue );
   assert( newTexture );
 
   newTexture->usage[ UI( 0, 0 ) ] = 1;
   newTexture->freeTileCount--;
 
   allocation.texture     = newTexture->resource.get();
-  allocation.textureSlot = newTexture->slot;
+  allocation.memoryHeap  = newTexture->heap.get();
   allocation.x           = 0;
   allocation.y           = 0;
 
@@ -109,7 +124,7 @@ TileHeap::Allocation D3DTileHeap::alloc( Device& device, CommandList& commandLis
 void D3DTileHeap::free( Allocation allocation )
 {
   assert( allocation.texture );
-  assert( allocation.heap == this );
+  assert( allocation.tileHeap == this );
 
   EnterCriticalSection( &allocationLock );
   auto unlock = eastl::make_finally( [this]() { LeaveCriticalSection( &allocationLock ); } );

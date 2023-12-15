@@ -1,12 +1,22 @@
 #pragma once
 
 #include "../FileLoader.h"
+#include "Common/AsyncJobThread.h"
 
 struct Device;
 struct CommandList;
 struct Resource;
 
-class CPUFileLoader : public FileLoader, public FileLoaderQueue
+struct LoadingJob
+{
+  Device& device;
+  HANDLE fileHandle;
+  int byteOffset;
+  PixelFormat pixelFormat;
+  eastl::unique_ptr< Resource >& uploadResource;
+};
+
+class CPUFileLoader : public FileLoader, public FileLoaderQueue, public AsyncJobThread< LoadingJob >
 {
 public:
   CPUFileLoader( Device& device );
@@ -17,25 +27,6 @@ public:
   void Enqueue( Device& device, HANDLE fileHandle, int byteOffset, PixelFormat pixelFormat, eastl::unique_ptr< Resource >& uploadResource ) override;
 
 private:
-  struct LoadingJob
-  {
-    Device& device;
-    HANDLE fileHandle;
-    int byteOffset;
-    PixelFormat pixelFormat;
-    eastl::unique_ptr< Resource >& uploadResource;
-  };
-
-  eastl::atomic< bool > keepLoading = true;
-  eastl::queue< LoadingJob > loadingJobs;
-
-  CRITICAL_SECTION queueLock;
-  HANDLE hasWork = INVALID_HANDLE_VALUE;
-
-  std::thread loadingThread;
-
-  static void LoadingThreadFunc( CPUFileLoader& loader );
-
   struct CPUFile : public FileLoaderFile
   {
     CPUFile( FileLoaderQueue& loaderQueue, HANDLE fileHandle );
@@ -44,11 +35,7 @@ private:
     void LoadPackedMipTail( Device& device
                           , CommandList& commandList
                           , Resource& resource
-                          , int byteOffset
-                          , int byteCount
-                          , int mipCount
-                          , int firstMipHBlocks
-                          , int firstMipVBlocks
+                          , const TFFHeader& tffHeader
                           , int blockSize ) override;
 
     void LoadSingleTile( Device& device
@@ -57,7 +44,7 @@ private:
                        , int byteOffset
                        , OnTileLoadAction onTileLoadAction ) override;
 
-    void UploadLoadedTiles( Device& device, CommandList& commandList ) override;
+    void UploadLoadedTiles( Device& device, CommandQueue& copyQueue, CommandList& commandList ) override;
 
     struct LoadingJob
     {
@@ -69,6 +56,7 @@ private:
     };
 
     void UploadTile( Device& device
+                   , CommandQueue& copyQueue
                    , CommandList& commandList
                    , LoadingJob&& loadingJob );
 

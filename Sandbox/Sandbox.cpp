@@ -28,7 +28,7 @@ o Raycast camera
   o Also cast ray around to get stuck in walls
  */
 
-#if 0
+#if 1
   static const wchar_t* scenePath = L"Content/UrbanScene";
 #else
   static const wchar_t* scenePath = L"Content/FBX";
@@ -189,10 +189,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
         TextureStreamer::UpdateResult streamingCommandLists;
         if ( debugWindow.GetUpdateTextureStreaming() )
-          streamingCommandLists = renderManager.UpdateAfterFrame( *commandList, CommandQueueType::Direct, nextFrameFenceValue );
+          streamingCommandLists = renderManager.UpdateAfterFrame( *commandList, nextFrameFenceValue );
 
         if ( int texIndex = debugWindow.GetDebugTextureIndex(); texIndex >= 0 )
           renderManager.RenderDebugTexture( *commandList, texIndex, backBuffer.GetTextureWidth(), backBuffer.GetTextureHeight(), DebugOutput::None );
+        else if ( int texIndex = debugWindow.GetDebugHeapTextureIndex(); texIndex >= 0 )
+          renderManager.RenderDebugHeapTexture( *commandList, texIndex, backBuffer.GetTextureWidth(), backBuffer.GetTextureHeight(), DebugOutput::None );
+
 
         if ( enableImGui )
         {

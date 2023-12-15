@@ -128,8 +128,9 @@ half3 TraceDirectLighting( half3 albedo
   if ( any( shadow > 0 ) )
     directLighting += CalcDirectLight( albedo, roughness, metallic, lights[ 0 ], worldPosition, worldNormal, cameraPosition, toCamera, F0, NdotC ) * shadow;
 
-  for ( uint lightIx = 1; lightIx < lightCount; ++lightIx )
-    directLighting += CalcDirectLight( albedo, roughness, metallic, lights[ lightIx ], worldPosition, worldNormal, cameraPosition, toCamera, F0, NdotC );
+  // There is something wrong if this is enabled, and some objects becoming purple.
+  // for ( uint lightIx = 1; lightIx < lightCount; ++lightIx )
+  //   directLighting += CalcDirectLight( albedo, roughness, metallic, lights[ lightIx ], worldPosition, worldNormal, cameraPosition, toCamera, F0, NdotC );
 
   return directLighting;
 }

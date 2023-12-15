@@ -27,7 +27,7 @@
 static constexpr float initialMinLog = -12.0f;
 static constexpr float initialMaxLog = 4.0f;
 
-static constexpr int triangleExtractRootConstants = 13;
+static constexpr int triangleExtractRootConstants = 11;
 
 static void InitializeManualExposure( CommandList& commandList, Resource& expBuffer, Resource& expOnlyBuffer, float exposure )
 {
@@ -633,7 +633,7 @@ Scene::Scene( CommandList& commandList, const wchar_t* hostFolder, int screenWid
   skyBuffer->AttachResourceDescriptor( ResourceDescriptorType::UnorderedAccessView, eastl::move( skyBufferUAVDesc ) );
   skyBuffer->AttachResourceDescriptor( ResourceDescriptorType::ConstantBufferView, eastl::move( skyBufferCBVDesc ) );
 
-  skyTexture = device.CreateCubeTexture( commandList, 512, nullptr, 0, RenderManager::HDRFormat, true, SkyTextureSlot, eastl::nullopt, false, L"skyTexture" );
+  skyTexture = device.CreateCubeTexture( nullptr, 512, nullptr, 0, RenderManager::HDRFormat, true, SkyTextureSlot, eastl::nullopt, false, L"skyTexture" );
 
   exposureBuffer = device.CreateBuffer( ResourceType::ConstantBuffer, HeapType::Default, true, sizeof( ExposureBuffer ), sizeof( ExposureBuffer ), L"Exposure" );
   auto exposureBufferCBVDesc = device.GetShaderResourceHeap().RequestDescriptorFromSlot( device, ResourceDescriptorType::ConstantBufferView,  ExposureBufferCBVSlot, *exposureBuffer, sizeof( ExposureBuffer ) );
@@ -641,7 +641,7 @@ Scene::Scene( CommandList& commandList, const wchar_t* hostFolder, int screenWid
   exposureBuffer->AttachResourceDescriptor( ResourceDescriptorType::ConstantBufferView,  eastl::move( exposureBufferCBVDesc ) );
   exposureBuffer->AttachResourceDescriptor( ResourceDescriptorType::UnorderedAccessView, eastl::move( exposureBufferUAVDesc ) );
 
-  exposureOnlyBuffer = device.Create2DTexture( commandList, 1, 1, nullptr, 0, PixelFormat::R32F, false, ExposureOnlySlot, ExposureOnlyUAVSlot, false, L"ExposureOnly");
+  exposureOnlyBuffer = device.Create2DTexture( &commandList, 1, 1, nullptr, 0, PixelFormat::R32F, false, ExposureOnlySlot, ExposureOnlyUAVSlot, false, L"ExposureOnly");
 
   histogramBuffer = device.CreateBuffer( ResourceType::Buffer, HeapType::Default, true, 256 * sizeof( uint32_t ), sizeof( uint32_t ), L"Histogram" );
   auto histogramBufferDesc    = device.GetShaderResourceHeap().RequestDescriptorFromSlot( device, ResourceDescriptorType::ShaderResourceView,  HistogramBufferSlot,    *histogramBuffer, sizeof( uint32_t ) );
@@ -745,12 +745,12 @@ Scene::Scene( CommandList& commandList, const wchar_t* hostFolder, int screenWid
   auto texels = ParseSimpleDDS( scramblingRankingTextureData, width, height, pf );
   assert( pf == PixelFormat::RGBA8888UN );
   pf = PixelFormat::RGBA8888U;
-  scramblingRankingTexture = device.Create2DTexture( commandList, width, height, texels.first, texels.second, pf, false, ScramblingRankingSlot, eastl::nullopt, false, L"Scrambling ranking" );
+  scramblingRankingTexture = device.Create2DTexture( &commandList, width, height, texels.first, texels.second, pf, false, ScramblingRankingSlot, eastl::nullopt, false, L"Scrambling ranking" );
 
   texels = ParseSimpleDDS( sobolTextureData, width, height, pf );
   assert( pf == PixelFormat::RGBA8888UN );
   pf = PixelFormat::RGBA8888U;
-  sobolTexture = device.Create2DTexture( commandList, width, height, texels.first, texels.second, pf, false, SobolSlot, eastl::nullopt, false, L"Sobol" );
+  sobolTexture = device.Create2DTexture( &commandList, width, height, texels.first, texels.second, pf, false, SobolSlot, eastl::nullopt, false, L"Sobol" );
 
   RecreateScrenSizeDependantTextures( commandList, screenWidth, screenHeight );
 }
@@ -905,39 +905,39 @@ void Scene::RecreateScrenSizeDependantTextures( CommandList& commandList, int wi
 
   auto lrts = upscaling ? upscaling->GetRenderingResolution() : XMINT2( width, height );
 
-  hqColorTexture = device.Create2DTexture( commandList, width, height, nullptr, 0, RenderManager::HDRFormat, true, UpscaledTextureSlot, UpscaledTextureUAVSlot, false, L"HQColorTexture" );
+  hqColorTexture = device.Create2DTexture( &commandList, width, height, nullptr, 0, RenderManager::HDRFormat, true, UpscaledTextureSlot, UpscaledTextureUAVSlot, false, L"HQColorTexture" );
 
   if ( upscaling )
-    lqColorTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::HDRFormat, true, ColorTextureSlot,  eastl::nullopt, false, L"LQColorTexture");
+    lqColorTexture = device.Create2DTexture( nullptr, lrts.x, lrts.y, nullptr, 0, RenderManager::HDRFormat, true, ColorTextureSlot,  eastl::nullopt, false, L"LQColorTexture");
 
-  motionVectorTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::MotionVectorFormat, true, MotionVectorsSlot, eastl::nullopt, false, L"MotionVectors" );
+  motionVectorTexture = device.Create2DTexture( nullptr, lrts.x, lrts.y, nullptr, 0, RenderManager::MotionVectorFormat, true, MotionVectorsSlot, eastl::nullopt, false, L"MotionVectors" );
 
-  textureMipTexture  = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::TextureMipFormat,  true, TextureMipSlot,  eastl::nullopt, false, L"TextureMip" );
-  geometryIdsTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::GeometryIdsFormat, true, GeometryIdsSlot, eastl::nullopt, false, L"GeometryIds" );
+  textureMipTexture  = device.Create2DTexture( nullptr, lrts.x, lrts.y, nullptr, 0, RenderManager::TextureMipFormat,  true, TextureMipSlot,  eastl::nullopt, false, L"TextureMip" );
+  geometryIdsTexture = device.Create2DTexture( nullptr, lrts.x, lrts.y, nullptr, 0, RenderManager::GeometryIdsFormat, true, GeometryIdsSlot, eastl::nullopt, false, L"GeometryIds" );
 
-  depthTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::DepthFormat, false, DepthTextureSlot, eastl::nullopt, false, L"DepthTexture" );
+  depthTexture = device.Create2DTexture( nullptr, lrts.x, lrts.y, nullptr, 0, RenderManager::DepthFormat, false, DepthTextureSlot, eastl::nullopt, false, L"DepthTexture" );
   commandList.ChangeResourceState( *depthTexture, ResourceStateBits::DepthWrite );
 
   #if USE_AO_WITH_GI
-    aoTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::AOFormat,  false, AOTextureSRVSlot, AOTextureUAVSlot, false, L"AOTexture" );
+    aoTexture = device.Create2DTexture( &commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::AOFormat,  false, AOTextureSRVSlot, AOTextureUAVSlot, false, L"AOTexture" );
   #endif
 
-  reflectionTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::HDRFormat, false, ReflectionTextureSRVSlot, ReflectionTextureUAVSlot, false, L"ReflectionTexture" );
-  giTexture         = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::GIFormat,  false, GITextureSRVSlot, GITextureUAVSlot, false, L"GITexture" );
+  reflectionTexture = device.Create2DTexture( &commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::HDRFormat, false, ReflectionTextureSRVSlot, ReflectionTextureUAVSlot, false, L"ReflectionTexture" );
+  giTexture         = device.Create2DTexture( &commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::GIFormat,  false, GITextureSRVSlot, GITextureUAVSlot, false, L"GITexture" );
 
   auto bloomWidth  = width  > 2560 ? 1280 : 640;
   auto bloomHeight = height > 1440 ? 768  : 384;
 
   for ( int bt = 0; bt < 5; ++bt )
   {
-    bloomTextures[ bt ][ 0 ] = device.Create2DTexture( commandList, bloomWidth >> bt, bloomHeight >> bt, nullptr, 0, RenderManager::HDRFormat, true, BloomA0TextureSlot + bt, BloomA0TextureUAVSlot + bt, false, L"Bloom_a" );
-    bloomTextures[ bt ][ 1 ] = device.Create2DTexture( commandList, bloomWidth >> bt, bloomHeight >> bt, nullptr, 0, RenderManager::HDRFormat, true, BloomB0TextureSlot + bt, BloomB0TextureUAVSlot + bt, false, L"Bloom_b" );
+    bloomTextures[ bt ][ 0 ] = device.Create2DTexture( &commandList, bloomWidth >> bt, bloomHeight >> bt, nullptr, 0, RenderManager::HDRFormat, true, BloomA0TextureSlot + bt, BloomA0TextureUAVSlot + bt, false, L"Bloom_a" );
+    bloomTextures[ bt ][ 1 ] = device.Create2DTexture( &commandList, bloomWidth >> bt, bloomHeight >> bt, nullptr, 0, RenderManager::HDRFormat, true, BloomB0TextureSlot + bt, BloomB0TextureUAVSlot + bt, false, L"Bloom_b" );
   }
 
-  lumaTexture = device.Create2DTexture( commandList, bloomWidth, bloomHeight, nullptr, 0, RenderManager::LumaFormat, true, LumaTextureSlot, LumaTextureUAVSlot, false, L"Luma" );
+  lumaTexture = device.Create2DTexture( &commandList, bloomWidth, bloomHeight, nullptr, 0, RenderManager::LumaFormat, true, LumaTextureSlot, LumaTextureUAVSlot, false, L"Luma" );
 
-  shadowTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::ShadowFormat, true, ShadowTextureSlot, ShadowTextureUAVSlot, false, L"Shadow" );
-  shadowTransTexture = device.Create2DTexture( commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::ShadowTransFormat, true, ShadowTransTextureSlot, ShadowTransTextureUAVSlot, false, L"ShadowTrans" );
+  shadowTexture = device.Create2DTexture( &commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::ShadowFormat, true, ShadowTextureSlot, ShadowTextureUAVSlot, false, L"Shadow" );
+  shadowTransTexture = device.Create2DTexture( &commandList, lrts.x, lrts.y, nullptr, 0, RenderManager::ShadowTransFormat, true, ShadowTransTextureSlot, ShadowTransTextureUAVSlot, false, L"ShadowTrans" );
 
   denoiser = CreateDenoiser( device, manager.GetCommandQueue( CommandQueueType::Direct ), commandList, lrts.x, lrts.y );
 }
@@ -947,7 +947,7 @@ void Scene::CreateBRDFLUTTexture( CommandList& commandList )
   if ( specBRDFLUTTexture )
     return;
 
-  specBRDFLUTTexture = RenderManager::GetInstance().GetDevice().Create2DTexture( commandList, SpecBRDFLUTSize, SpecBRDFLUTSize, nullptr, 0, PixelFormat::RG1616F, false, SpecBRDFLUTSlot, SpecBRDFLUTUAVSlot, false, L"SpecBRDFLUT" );
+  specBRDFLUTTexture = RenderManager::GetInstance().GetDevice().Create2DTexture( &commandList, SpecBRDFLUTSize, SpecBRDFLUTSize, nullptr, 0, PixelFormat::RG1616F, false, SpecBRDFLUTSlot, SpecBRDFLUTUAVSlot, false, L"SpecBRDFLUT" );
 
   commandList.ChangeResourceState( *specBRDFLUTTexture, ResourceStateBits::UnorderedAccess );
   commandList.SetComputeShader( *specBRDFLUTShader );
@@ -995,7 +995,7 @@ void Scene::CullScene( CommandList& commandList, float jitterX, float jitterY, i
 
   static uint32_t feedbackPhase = 0;
 
-  #if ENABLE_TEXTURE_STREAMING
+  #if TEXTURE_STREAMING_MODE != TEXTURE_STREAMING_OFF
     if ( ++feedbackPhase > 10 )
       feedbackPhase = 1;
   #endif
@@ -1168,9 +1168,6 @@ void Scene::RenderDepth( CommandList& commandList )
     commandList.SetDescriptorHeap( 3, renderManager.GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
     commandList.SetDescriptorHeap( 4, renderManager.GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
     commandList.SetDescriptorHeap( 5, renderManager.GetShaderResourceHeap(), Scene2DResourceBaseSlot );
-    commandList.SetDescriptorHeap( 6, renderManager.GetShaderResourceHeap(), Scene2DMipTailBaseSlot );
-    commandList.SetDescriptorHeap( 7, renderManager.GetShaderResourceHeap(), Engine2DTileTexturesBaseSlot );
-    commandList.SetDescriptorHeap( 8, renderManager.GetShaderResourceHeap(), Engine2DReferenceTextureBaseSlot );
     commandList.ExecuteIndirect( renderManager.GetCommandSignature( sig ), drawBuffer, 0, *indirectDrawCountBuffer, sizeof( uint32_t ) * offset, instanceCount );
   };
 
@@ -1207,8 +1204,6 @@ void Scene::RenderShadow( CommandList& commandList )
   commandList.SetComputeDescriptorHeap( 10, RenderManager::GetInstance().GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
   commandList.SetComputeDescriptorHeap( 11, RenderManager::GetInstance().GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
   commandList.SetComputeDescriptorHeap( 12, RenderManager::GetInstance().GetShaderResourceHeap(), Scene2DResourceBaseSlot );
-  commandList.SetComputeDescriptorHeap( 13, RenderManager::GetInstance().GetShaderResourceHeap(), Scene2DMipTailBaseSlot );
-  commandList.SetComputeDescriptorHeap( 14, RenderManager::GetInstance().GetShaderResourceHeap(), Engine2DTileTexturesBaseSlot );
 
   commandList.DispatchRays( shadowTexture->GetTextureWidth(), shadowTexture->GetTextureHeight(), 1 );
 
@@ -1216,7 +1211,7 @@ void Scene::RenderShadow( CommandList& commandList )
 
   commandList.ChangeResourceState( { { *shadowTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput }
                                    , { *shadowTransTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput }
-                                   , { * depthTexture, ResourceStateBits::DepthRead } } );
+                                   , { *depthTexture, ResourceStateBits::DepthRead } } );
 }
 
 void Scene::RenderAO( CommandList& commandList )
@@ -1360,9 +1355,7 @@ void Scene::SetupTriangleBuffers( CommandList& commandList, bool compute )
     commandList.SetComputeDescriptorHeap( 7,  manager.GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
     commandList.SetComputeDescriptorHeap( 8,  manager.GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
     commandList.SetComputeDescriptorHeap( 9,  manager.GetShaderResourceHeap(), Scene2DResourceBaseSlot );
-    commandList.SetComputeDescriptorHeap( 10, manager.GetShaderResourceHeap(), Scene2DMipTailBaseSlot );
-    commandList.SetComputeDescriptorHeap( 11, manager.GetShaderResourceHeap(), Engine2DTileTexturesBaseSlot );
-    commandList.SetComputeDescriptorHeap( 12, manager.GetShaderResourceHeap(), IndirectOpaqueDrawBufferSRVSlot );
+    commandList.SetComputeDescriptorHeap( 10, manager.GetShaderResourceHeap(), IndirectOpaqueDrawBufferSRVSlot );
   }
   else
   {
@@ -1376,9 +1369,7 @@ void Scene::SetupTriangleBuffers( CommandList& commandList, bool compute )
     commandList.SetDescriptorHeap( 7,  manager.GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
     commandList.SetDescriptorHeap( 8,  manager.GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
     commandList.SetDescriptorHeap( 9,  manager.GetShaderResourceHeap(), Scene2DResourceBaseSlot );
-    commandList.SetDescriptorHeap( 10, manager.GetShaderResourceHeap(), Scene2DMipTailBaseSlot );
-    commandList.SetDescriptorHeap( 11, manager.GetShaderResourceHeap(), Engine2DTileTexturesBaseSlot );
-    commandList.SetDescriptorHeap( 12, manager.GetShaderResourceHeap(), IndirectOpaqueDrawBufferSRVSlot );
+    commandList.SetDescriptorHeap( 10, manager.GetShaderResourceHeap(), IndirectOpaqueDrawBufferSRVSlot );
   }
 }
 
@@ -1447,12 +1438,9 @@ void Scene::RenderTranslucent( CommandList& commandList )
     commandList.SetDescriptorHeap( 8,  renderManager.GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
     commandList.SetDescriptorHeap( 9,  renderManager.GetShaderResourceHeap(), SceneBufferResourceBaseSlot );
     commandList.SetDescriptorHeap( 10, renderManager.GetShaderResourceHeap(), Scene2DResourceBaseSlot );
-    commandList.SetDescriptorHeap( 11, renderManager.GetShaderResourceHeap(), Scene2DMipTailBaseSlot );
-    commandList.SetDescriptorHeap( 12, renderManager.GetShaderResourceHeap(), Engine2DTileTexturesBaseSlot );
-    commandList.SetDescriptorHeap( 13, renderManager.GetShaderResourceHeap(), Engine2DReferenceTextureBaseSlot );
     if ( auto globalTextureFeedbackBuffer = renderManager.GetGlobalTextureFeedbackBuffer( commandList ) )
-      commandList.SetUnorderedAccessView( 14, *globalTextureFeedbackBuffer );
-    commandList.SetDescriptorHeap( 15, RenderManager::GetInstance().GetShaderResourceHeap(), Scene2DFeedbackBaseSlot );
+      commandList.SetUnorderedAccessView( 11, *globalTextureFeedbackBuffer );
+    commandList.SetDescriptorHeap( 12, RenderManager::GetInstance().GetShaderResourceHeap(), Scene2DFeedbackBaseSlot );
     commandList.ExecuteIndirect( renderManager.GetCommandSignature( twoSided ? CommandSignatures::MeshTranslucentTwoSided : CommandSignatures::MeshTranslucent )
                                , twoSided ? *indirectTranslucentTwoSidedDrawBuffer : *indirectTranslucentDrawBuffer
                                , 0

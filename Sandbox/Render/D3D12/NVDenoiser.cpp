@@ -41,17 +41,17 @@ struct NriInterface : public nri::CoreInterface, public nri::HelperInterface, pu
 {
 };
 
-eastl::unique_ptr< Denoiser > CreateDenoiser( Device& device, CommandQueue& commandQueue, CommandList& commandList, int width, int height )
+eastl::unique_ptr< Denoiser > CreateDenoiser( Device& device, CommandQueue& directQueue, CommandList& commandList, int width, int height )
 {
-  return eastl::make_unique< NVDenoiser >( device, commandQueue, commandList, width, height );
+  return eastl::make_unique< NVDenoiser >( device, directQueue, commandList, width, height );
 }
 
-NVDenoiser::NVDenoiser( Device& device, CommandQueue& commandQueue, CommandList& commandList, int width, int height )
+NVDenoiser::NVDenoiser( Device& device, CommandQueue& directQueue, CommandList& commandList, int width, int height )
   : nriInterface( new NriInterface )
 {
   nri::DeviceCreationD3D12Desc deviceDesc = {};
   deviceDesc.d3d12Device         = static_cast< D3DDevice& >( device ).GetD3DDevice();
-  deviceDesc.d3d12GraphicsQueue  = static_cast< D3DCommandQueue& >( commandQueue ).GetD3DCommandQueue();
+  deviceDesc.d3d12GraphicsQueue  = static_cast< D3DCommandQueue& >( directQueue ).GetD3DCommandQueue();
   deviceDesc.enableNRIValidation = false;
 
   auto nriResult = nri::nriCreateDeviceFromD3D12Device( deviceDesc, nriDevice ); assert( nriResult == nri::Result::SUCCESS );
@@ -74,14 +74,14 @@ NVDenoiser::NVDenoiser( Device& device, CommandQueue& commandQueue, CommandList&
   nrdInterface = eastl::make_unique< NrdIntegration >( 2, true );
   auto nrdResult = nrdInterface->Initialize( instanceCreationDesc, *nriDevice, *nriInterface, *nriInterface ); assert( nrdResult );
 
-  internalTextures[ InternalTextures::Motion3D           ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseMotionSRVSlot,             DenoiseMotionUAVSlot,             1, L"DenoiseMotion" );
-  internalTextures[ InternalTextures::ViewZ              ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::R32F,          false, DenoiseViewZSRVSlot,              DenoiseViewZUAVSlot,              1, L"DenoiseViewZ" );
-  internalTextures[ InternalTextures::NormalRoughness    ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA8888UN,    false, DenoiseNormalRoughnessSRVSlot,    DenoiseNormalRoughnessUAVSlot,    1, L"NormalRoughness" );
-  internalTextures[ InternalTextures::FilteredGI         ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseFilteredGISRVSlot,         DenoiseFilteredGIUAVSlot,         1, L"FilteredGI" );
-  internalTextures[ InternalTextures::FilteredAO         ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::R16F,          false, DenoiseFilteredAOSRVSlot,         DenoiseFilteredAOUAVSlot,         1, L"FilteredAO" );
-  internalTextures[ InternalTextures::FilteredShadow     ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA8888UN,    false, DenoiseFilteredShadowSRVSlot,     DenoiseFilteredShadowUAVSlot,     1, L"FilteredShadow" );
-  internalTextures[ InternalTextures::FilteredReflection ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseFilteredReflectionSRVSlot, DenoiseFilteredReflectionUAVSlot, 1, L"FilteredReflection" );
-  internalTextures[ InternalTextures::Validation         ] = device.Create2DTexture( commandList, width, height, nullptr, 0, PixelFormat::RGBA8888UN,    false, DenoiseValidationSRVSlot,         DenoiseValidationUAVSlot,         1, L"Validation" );
+  internalTextures[ InternalTextures::Motion3D           ] = device.Create2DTexture( &commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseMotionSRVSlot,             DenoiseMotionUAVSlot,             1, L"DenoiseMotion" );
+  internalTextures[ InternalTextures::ViewZ              ] = device.Create2DTexture( &commandList, width, height, nullptr, 0, PixelFormat::R32F,          false, DenoiseViewZSRVSlot,              DenoiseViewZUAVSlot,              1, L"DenoiseViewZ" );
+  internalTextures[ InternalTextures::NormalRoughness    ] = device.Create2DTexture( &commandList, width, height, nullptr, 0, PixelFormat::RGBA8888UN,    false, DenoiseNormalRoughnessSRVSlot,    DenoiseNormalRoughnessUAVSlot,    1, L"NormalRoughness" );
+  internalTextures[ InternalTextures::FilteredGI         ] = device.Create2DTexture( &commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseFilteredGISRVSlot,         DenoiseFilteredGIUAVSlot,         1, L"FilteredGI" );
+  internalTextures[ InternalTextures::FilteredAO         ] = device.Create2DTexture( &commandList, width, height, nullptr, 0, PixelFormat::R16F,          false, DenoiseFilteredAOSRVSlot,         DenoiseFilteredAOUAVSlot,         1, L"FilteredAO" );
+  internalTextures[ InternalTextures::FilteredShadow     ] = device.Create2DTexture( &commandList, width, height, nullptr, 0, PixelFormat::RGBA8888UN,    false, DenoiseFilteredShadowSRVSlot,     DenoiseFilteredShadowUAVSlot,     1, L"FilteredShadow" );
+  internalTextures[ InternalTextures::FilteredReflection ] = device.Create2DTexture( &commandList, width, height, nullptr, 0, PixelFormat::RGBA16161616F, false, DenoiseFilteredReflectionSRVSlot, DenoiseFilteredReflectionUAVSlot, 1, L"FilteredReflection" );
+  internalTextures[ InternalTextures::Validation         ] = device.Create2DTexture( &commandList, width, height, nullptr, 0, PixelFormat::RGBA8888UN,    false, DenoiseValidationSRVSlot,         DenoiseValidationUAVSlot,         1, L"Validation" );
 
   commandList.ChangeResourceState( { { *internalTextures[ InternalTextures::Motion3D ],        ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput }
                                    , { *internalTextures[ InternalTextures::ViewZ ],           ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput }

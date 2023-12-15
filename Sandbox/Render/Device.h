@@ -12,6 +12,7 @@ struct RTBottomLevelAccelerator;
 struct RTTopLevelAccelerator;
 struct RTShaders;
 struct DescriptorHeap;
+struct MemoryHeap;
 struct ComputeShader;
 struct GPUTimeQuery;
 struct TFFHeader;
@@ -37,11 +38,15 @@ struct Device
   virtual eastl::unique_ptr< Resource >                 CreateBuffer( ResourceType resourceType, HeapType heapType, bool unorderedAccess, int size, int elementSize, const wchar_t* debugName ) = 0;
   virtual eastl::unique_ptr< RTBottomLevelAccelerator > CreateRTBottomLevelAccelerator( CommandList& commandList, Resource& vertexBuffer, int vertexCount, int positionElementSize, int vertexStride, Resource& indexBuffer, int indexSize, int indexCount, int infoIndex, bool opaque, bool allowUpdate, bool fastBuild ) = 0;
   virtual eastl::unique_ptr< RTTopLevelAccelerator >    CreateRTTopLevelAccelerator( CommandList& commandList, eastl::vector< RTInstance > instances, int slot ) = 0;
-  virtual eastl::unique_ptr< Resource >                 CreateVolumeTexture( CommandList& commandList, int width, int height, int depth, const void* data, int dataSize, PixelFormat format, int slot, eastl::optional< int > uavSlot, const wchar_t* debugName ) = 0;
-  virtual eastl::unique_ptr< Resource >                 Create2DTexture( CommandList& commandList, int width, int height, const void* data, int dataSize, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName ) = 0;
-  virtual eastl::unique_ptr< Resource >                 CreateCubeTexture( CommandList& commandList, int width, const void* data, int dataSize, PixelFormat format, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName ) = 0;
+  virtual eastl::unique_ptr< Resource >                 CreateVolumeTexture( CommandList* commandList, int width, int height, int depth, const void* data, int dataSize, PixelFormat format, int slot, eastl::optional< int > uavSlot, const wchar_t* debugName ) = 0;
+  virtual eastl::unique_ptr< Resource >                 Create2DTexture( CommandList* commandList, int width, int height, const void* data, int dataSize, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName ) = 0;
+  virtual eastl::unique_ptr< Resource >                 CreateCubeTexture( CommandList* commandList, int width, const void* data, int dataSize, PixelFormat format, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName ) = 0;
+  virtual eastl::unique_ptr< Resource >                 CreateReserved2DTexture( int width, int height, PixelFormat format, int slot, bool mipLevels, const wchar_t* debugName ) = 0;
   virtual eastl::unique_ptr< ComputeShader >            CreateComputeShader( const void* shaderData, int shaderSize, const wchar_t* debugName ) = 0;
+  virtual eastl::unique_ptr< MemoryHeap >               CreateMemoryHeap( uint64_t size, const wchar_t* debugName ) = 0;
   virtual eastl::unique_ptr< GPUTimeQuery >             CreateGPUTimeQuery() = 0;
+
+  virtual void PreallocateTiles( CommandQueue& directQueue ) = 0;
 
   virtual eastl::unique_ptr< RTShaders > CreateRTShaders( CommandList& commandList
                                                       , const eastl::vector< uint8_t >& rootSignatureShaderBinary
@@ -58,7 +63,7 @@ struct Device
   virtual eastl::unique_ptr< Resource > Load2DTexture( CommandList& commandList, eastl::vector< uint8_t >&& textureData, int slot, const wchar_t* debugName ) = 0;
   virtual eastl::unique_ptr< Resource > LoadCubeTexture( CommandList& commandList, eastl::vector< uint8_t >&& textureData, int slot, const wchar_t* debugName ) = 0;
 
-  virtual eastl::unique_ptr< Resource > Stream2DTexture( CommandQueue& commandQueue
+  virtual eastl::unique_ptr< Resource > Stream2DTexture( CommandQueue& directQueue
                                                        , CommandList& commandList
                                                        , const TFFHeader& tffHeader
                                                        , eastl::unique_ptr< FileLoaderFile >&& fileHandle
@@ -83,5 +88,5 @@ struct Device
 
   virtual eastl::wstring GetMemoryInfo( bool includeIndividualAllocations ) = 0;
 
-  eastl::unique_ptr< Resource > Create2DTexture( CommandList& commandList, int width, int height, const void* data, int dataSize, PixelFormat format, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName );
+  eastl::unique_ptr< Resource > Create2DTexture( CommandList* commandList, int width, int height, const void* data, int dataSize, PixelFormat format, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName );
 };

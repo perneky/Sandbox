@@ -76,6 +76,32 @@ static int getBlockSize( TFFHeader::PixelFormat pixelFormat )
   }
 }
 
+static int calcTileWidth( TFFHeader::PixelFormat pixelFormat )
+{
+  switch ( pixelFormat )
+  {
+  case TFFHeader::PixelFormat::BC1: return 512;
+  case TFFHeader::PixelFormat::BC2: return 256;
+  case TFFHeader::PixelFormat::BC3: return 256;
+  case TFFHeader::PixelFormat::BC4: return 512;
+  case TFFHeader::PixelFormat::BC5: return 256;
+  default: assert( false ); return 0;
+  }
+}
+
+static int calcTileHeight( TFFHeader::PixelFormat pixelFormat )
+{
+  switch ( pixelFormat )
+  {
+  case TFFHeader::PixelFormat::BC1: return 256;
+  case TFFHeader::PixelFormat::BC2: return 256;
+  case TFFHeader::PixelFormat::BC3: return 256;
+  case TFFHeader::PixelFormat::BC4: return 256;
+  case TFFHeader::PixelFormat::BC5: return 256;
+  default: assert( false ); return 0;
+  }
+}
+
 static int getBlockSize( const DDS_HEADER& dds )
 {
   return getBlockSize( getPixelFormat( dds ) );
@@ -122,14 +148,14 @@ static bool write( FILE* handle, const T& data )
   return write( handle, &data, sizeof( data ) );
 }
 
-static void WriteTile( const std::string& basePath, int mip, int tx, int ty, const void* tileData, int tileMemorySize, const DDS_HEADER& originalDDS )
+static void WriteTile( const std::string& basePath, int mip, int tx, int ty, int width, int height, const void* tileData, int tileMemorySize, const DDS_HEADER& originalDDS )
 {
   auto path = basePath + "_" + std::to_string( mip ) + "_" + std::to_string( tx ) + "_" + std::to_string( ty ) + ".dds";
 
   DDS_HEADER dds = originalDDS;
 
-  dds.height            = TFFHeader::tileSize + 8;
-  dds.width             = TFFHeader::tileSize + 8;
+  dds.height            = height;
+  dds.width             = width;
   dds.pitchOrLinearSize = ( dds.width / 4 ) * getBlockSize( originalDDS );
   dds.depth             = 1;
   dds.mipMapCount       = 1;
@@ -221,13 +247,21 @@ int main(int argc, char* argv[])
     return -1;
   }
 
+  TFFHeader tffHeader;
+  tffHeader.width          = ddsHeader.width;
+  tffHeader.height         = ddsHeader.height;
+  tffHeader.mipCount       = ddsHeader.mipMapCount;
+  tffHeader.pixelFormat    = getPixelFormat( ddsHeader );
+  tffHeader.tileWidth      = calcTileWidth( tffHeader.pixelFormat );
+  tffHeader.tileHeight     = calcTileHeight( tffHeader.pixelFormat );
+
   int tailMipCount = 0;
   for ( int mip = 0; mip < int( ddsHeader.mipMapCount ); ++mip )
   {
     int mipWidth  = std::max( ddsHeader.width  >> mip, 1U );
     int mipHeight = std::max( ddsHeader.height >> mip, 1U );
 
-    if ( mipWidth <= TFFHeader::tileSize && mipHeight <= TFFHeader::tileSize )
+    if ( mipWidth < int( tffHeader.tileWidth ) || mipHeight < int( tffHeader.tileHeight ) )
     {
       tailMipCount = ddsHeader.mipMapCount - mip;
       break;
@@ -238,6 +272,9 @@ int main(int argc, char* argv[])
   for ( int mip = ddsHeader.mipMapCount - tailMipCount; mip < int( ddsHeader.mipMapCount ); ++mip )
     tailMemSize += calcMipSize( ddsHeader, mip );
 
+  tffHeader.packedMipCount    = tailMipCount;
+  tffHeader.packedMipDataSize = tailMemSize;
+
   auto outputFileName = path.generic_string();
   outputFileName.replace( outputFileName.size() - 3, 3, "tff" );
   FILE* outputTextureFileHandle = nullptr;
@@ -247,18 +284,10 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  int tileBlockWidth       = TFFHeader::tileSize / 4;
-  int tileBlockHeight      = TFFHeader::tileSize / 4;
-  int tileMemorySize       = ( tileBlockWidth + 2 ) * ( tileBlockHeight + 2 ) * getBlockSize( ddsHeader );
-  int tileSourceMemorySize = tileBlockWidth * tileBlockHeight * getBlockSize( ddsHeader );
+  int tileBlockWidth  = int( tffHeader.tileWidth  / 4 );
+  int tileBlockHeight = int( tffHeader.tileHeight / 4 );
+  int tileMemorySize  = tileBlockWidth * tileBlockHeight * getBlockSize( ddsHeader );
 
-  TFFHeader tffHeader;
-  tffHeader.width             = ddsHeader.width;
-  tffHeader.height            = ddsHeader.height;
-  tffHeader.mipCount          = ddsHeader.mipMapCount;
-  tffHeader.pixelFormat       = getPixelFormat( ddsHeader );
-  tffHeader.packedMipCount    = tailMipCount;
-  tffHeader.packedMipDataSize = tailMemSize;
   if ( !write( outputTextureFileHandle, tffHeader ) )
     return -1;
 
@@ -297,7 +326,7 @@ int main(int argc, char* argv[])
     {
       for ( int tx = 0; tx < htiles; ++tx )
       {
-        int lineStart   = ty * htiles * tileSourceMemorySize;
+        int lineStart   = ty * htiles * tileMemorySize;
         int readCursor  = lineStart + tx * sourceTileMemoryWidth;
         int writeCursor = 0;
 
@@ -306,66 +335,25 @@ int main(int argc, char* argv[])
           bool isLeftMostBlock  = tx == 0;
           bool isRightMostBlock = tx == htiles - 1;
 
-          // On the left, read from the right for wrapping
-          if ( isLeftMostBlock )
-            memcpy_s( tileData + writeCursor, sizeof( tileData ) - writeCursor, mipData + readCursor + sourceTileMemoryWidth * htiles - blockSize, blockSize );
-          else
-            memcpy_s( tileData + writeCursor, sizeof( tileData ) - writeCursor, mipData + readCursor - blockSize, blockSize );
-          writeCursor += blockSize;
-
-          if ( isRightMostBlock )
-          {
-            memcpy_s( tileData + writeCursor, sizeof( tileData ) - writeCursor, mipData + readCursor, sourceTileMemoryWidth );
-            readCursor += mipBlockWidth * blockSize;
-            writeCursor += sourceTileMemoryWidth;
-
-            memcpy_s( tileData + writeCursor, sizeof( tileData ) - writeCursor, mipData + readCursor - sourceTileMemoryWidth * ( htiles - 1 ), blockSize );
-            writeCursor += blockSize;
-          }
-          else
-          {
-            memcpy_s( tileData + writeCursor, sizeof( tileData ) - writeCursor, mipData + readCursor, sourceTileMemoryWidth + blockSize );
-            readCursor += mipBlockWidth * blockSize;
-            writeCursor += sourceTileMemoryWidth + blockSize;
-          }
+          memcpy_s( tileData + writeCursor, sizeof( tileData ) - writeCursor, mipData + readCursor, sourceTileMemoryWidth );
+          readCursor += mipBlockWidth * blockSize;
+          writeCursor += sourceTileMemoryWidth;
         };
 
         bool isTopMostBlock    = ty == 0;
         bool isBottomMostBlock = ty == vtiles - 1;
 
-        if ( isTopMostBlock )
-        {
-          int bak = readCursor;
-          readCursor = htiles * vtiles * tileSourceMemorySize - sourceTileMemoryWidth * htiles + tx * sourceTileMemoryWidth;
-          writeOneLine();
-          readCursor = bak;
-        }
-        else
-        {
-          int bak = readCursor;
-          readCursor -= sourceTileMemoryWidth * htiles;
-          writeOneLine();
-          readCursor = bak;
-        }
-
         for ( int by = 0; by < tileBlockHeight; ++by )
           writeOneLine();
-
-        if ( isBottomMostBlock )
-        {
-          readCursor = tx * sourceTileMemoryWidth;
-          writeOneLine();
-        }
-        else
-        {
-          writeOneLine();
-        }
 
         if ( !write( outputTextureFileHandle, tileData, tileMemorySize ) )
           return -1;
 
         #if _DEBUG
-          WriteTile( outputFileName, mip, tx, ty, tileData, tileMemorySize, ddsHeader );
+          if ( forReserved )
+            WriteTile( outputFileName, mip, tx, ty, tffHeader.tileWidth, tffHeader.tileHeight, tileData, tileMemorySize, ddsHeader );
+          else
+            WriteTile( outputFileName, mip, tx, ty, tffHeader.tileWidth + 8, tffHeader.tileHeight + 8, tileData, tileMemorySize, ddsHeader );
         #endif
       }
     }

@@ -19,6 +19,7 @@ public:
   bool               GetUpdateTextureStreaming() const;
   float              GetManualExposure        () const;
   int                GetDebugTextureIndex     () const;
+  int                GetDebugHeapTextureIndex () const;
   bool               GetFreezeCulling         () const;
   DebugOutput        GetDebugOutput           () const;
 
@@ -35,6 +36,9 @@ private:
 
   bool renderTexture      = false;
   int  renderTextureIndex = 0;
+
+  bool renderHeapTexture      = false;
+  int  renderHeapTextureIndex = 0;
 
   bool updateTextureStreaming = true;
 

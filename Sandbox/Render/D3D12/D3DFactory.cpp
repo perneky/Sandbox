@@ -114,10 +114,10 @@ eastl::unique_ptr< Adapter > D3DFactory::CreateDefaultAdapter()
   return eastl::unique_ptr< Adapter >( new D3DAdapter( *this ) );
 }
 
-eastl::unique_ptr< Swapchain > D3DFactory::CreateSwapchain( Device& device, CommandQueue& commandQueue, Window& window )
+eastl::unique_ptr< Swapchain > D3DFactory::CreateSwapchain( Device& device, CommandQueue& directQueue, Window& window )
 {
   return eastl::unique_ptr< Swapchain >( new D3DSwapchain( *this
-                                                         , *static_cast< D3DCommandQueue* >( &commandQueue )
+                                                         , *static_cast< D3DCommandQueue* >( &directQueue )
                                                          , *static_cast< D3DDevice* >( &device )
                                                          , *static_cast< WinAPIWindow* >( &window ) ) );
 }

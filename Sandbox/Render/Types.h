@@ -452,3 +452,29 @@ struct IndexRange
 enum class AlphaModeCB : int;
 
 using MaterialTranslator = eastl::function< void( int, int, int&, bool&, AlphaModeCB& ) >;
+
+static int CalcTileWidth( PixelFormat pixelFormat )
+{
+  switch ( pixelFormat )
+  {
+  case PixelFormat::BC1UN: return 512;
+  case PixelFormat::BC2UN: return 256;
+  case PixelFormat::BC3UN: return 256;
+  case PixelFormat::BC4UN: return 512;
+  case PixelFormat::BC5UN: return 256;
+  default: assert( false ); return 0;
+  }
+}
+
+static int CalcTileHeight( PixelFormat pixelFormat )
+{
+  switch ( pixelFormat )
+  {
+  case PixelFormat::BC1UN: return 256;
+  case PixelFormat::BC2UN: return 256;
+  case PixelFormat::BC3UN: return 256;
+  case PixelFormat::BC4UN: return 256;
+  case PixelFormat::BC5UN: return 256;
+  default: assert( false ); return 0;
+  }
+}

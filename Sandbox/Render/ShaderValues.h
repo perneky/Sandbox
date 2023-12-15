@@ -19,10 +19,9 @@
 #define EngineBufferResourceCount     40
 #define Scene2DResourceCount          300
 #define SceneBufferResourceCount      5000
-#define Engine2DReferenceTextureCount 12
 #define Engine2DTileTexturesCount     100
 
-#define AllResourceCount ( Engine2DResourceCount + EngineCubeResourceCount + EngineVolResourceCount + EngineBufferResourceCount + Scene2DResourceCount * 3 + SceneBufferResourceCount + Engine2DReferenceTextureCount + Engine2DTileTexturesCount )
+#define AllResourceCount ( Engine2DResourceCount + EngineCubeResourceCount + EngineVolResourceCount + EngineBufferResourceCount + Scene2DResourceCount * 2 + SceneBufferResourceCount + Engine2DTileTexturesCount )
 
 #define Engine2DResourceBaseSlot         ( 0 )
 #define EngineCubeResourceBaseSlot       ( Engine2DResourceBaseSlot         + Engine2DResourceCount )
@@ -30,10 +29,8 @@
 #define EngineBufferResourceBaseSlot     ( EngineVolResourceBaseSlot        + EngineVolResourceCount )
 #define Scene2DResourceBaseSlot          ( EngineBufferResourceBaseSlot     + EngineBufferResourceCount )
 #define Scene2DFeedbackBaseSlot          ( Scene2DResourceBaseSlot          + Scene2DResourceCount )
-#define Scene2DMipTailBaseSlot           ( Scene2DFeedbackBaseSlot          + Scene2DResourceCount )
-#define SceneBufferResourceBaseSlot      ( Scene2DMipTailBaseSlot           + Scene2DResourceCount )
-#define Engine2DReferenceTextureBaseSlot ( SceneBufferResourceBaseSlot      + SceneBufferResourceCount )
-#define Engine2DTileTexturesBaseSlot     ( Engine2DReferenceTextureBaseSlot + Engine2DReferenceTextureCount )
+#define SceneBufferResourceBaseSlot      ( Scene2DFeedbackBaseSlot          + Scene2DResourceCount )
+#define Engine2DTileTexturesBaseSlot     ( SceneBufferResourceBaseSlot      + SceneBufferResourceCount )
 
 #define Engine2DResourceCountStr         "70"
 #define EngineCubeResourceCountStr       "10"
@@ -41,7 +38,6 @@
 #define EngineBufferResourceCountStr     "40"
 #define Scene2DResourceCountStr          "300"
 #define SceneBufferResourceCountStr      "5000"
-#define Engine2DReferenceTextureCountStr "12"
 #define Engine2DTileTexturesCountStr     "100"
 
 #ifdef __cplusplus
@@ -51,7 +47,6 @@
   static_assert( EngineBufferResourceCount == atou_cex( EngineBufferResourceCountStr ), "EngineBufferResourceCountStr is wrong" );
   static_assert( Scene2DResourceCount == atou_cex( Scene2DResourceCountStr ), "Scene2DResourceCountStr is wrong" );
   static_assert( SceneBufferResourceCount == atou_cex( SceneBufferResourceCountStr ), "SceneBufferResourceCountStr is wrong" );
-  static_assert( Engine2DReferenceTextureCount == atou_cex( Engine2DReferenceTextureCountStr ), "Engine2DReferenceTextureCountStr is wrong" );
   static_assert( Engine2DTileTexturesCount == atou_cex( Engine2DTileTexturesCountStr ), "Engine2DTileTexturesCountStr is wrong" );
 #endif // __cplusplus
 
@@ -225,7 +220,10 @@ enum BufferSlots
   static_assert( BufferSlotCount < EngineBufferResourceBaseSlot + EngineBufferResourceCount, "Too many engine buffers!" );
 #endif // __cplusplus
 
-#define ENABLE_TEXTURE_STREAMING 1
+#define TEXTURE_STREAMING_OFF      0
+#define TEXTURE_STREAMING_RESERVED 1
+
+#define TEXTURE_STREAMING_MODE TEXTURE_STREAMING_RESERVED
 
 #define USE_REVERSE_PROJECTION 1
 
@@ -283,21 +281,7 @@ enum BufferSlots
 
 #define SpecBRDFLUTSize 256
 
-// Adding 8 for the borders, 1 BC block on each side
-#define TileSize            256
-#define TileSizeF           256.0f
-#define TileBorder          4
-#define TileBorderF         4.0f
-#define TileSizeWithBorder  ( TileSize  + TileBorder  * 2 )
-#define TileSizeWithBorderF ( TileSizeF + TileBorderF * 2 )
-#define TileCount           32
-#define TileCountF          32.0F
-#define TileTextureSize     ( TileSizeWithBorder  * TileCount  )
-#define TileTextureSizeF    ( TileSizeWithBorderF * TileCountF )
-
-#ifdef __cplusplus
-  static_assert( TileSize == TFFHeader::tileSize, "Tile size need to match with TFF!" );
-#endif // __cplusplus
+#define TileCount 32
 
 #if 1
   #define BigRangeFlags ", flags = DESCRIPTORS_VOLATILE"

@@ -18,13 +18,7 @@ Texture2D< float > depthTexture : register( t4 );
 StructuredBuffer< uint >         meshIndices[]  : register( t5, space5 );
 StructuredBuffer< VertexFormat > meshVertices[] : register( t6, space6 );
 
-#if ENABLE_TEXTURE_STREAMING
-  Texture2D< uint2 > scene2DTextures[]        : register( t7, space7 );
-  Texture2D< half4 > scene2DMipTailTextures[] : register( t8, space8 );
-  Texture2D< half4 > engine2DTileTextures[]   : register( t9, space9 );
-#else
-  Texture2D< half4 > scene2DTextures[] : register( t7, space7 );
-#endif
+Texture2D< half4 > scene2DTextures[] : register( t7, space7 );
 
 Texture2D< uint3 > scramblingRankingTexture : register( t10 );
 Texture2D< uint4 > sobolTexture             : register( t11 );

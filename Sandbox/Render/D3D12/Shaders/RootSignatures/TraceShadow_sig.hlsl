@@ -12,11 +12,9 @@
                        "DescriptorTable( SRV( t11 ) )," \
                        "DescriptorTable( UAV( u0 ) )," \
                        "DescriptorTable( UAV( u1 ) )," \
-                       "DescriptorTable( SRV( t5, numDescriptors = " SceneBufferResourceCountStr  ", space = 5" BigRangeFlags " ) )," \
-                       "DescriptorTable( SRV( t6, numDescriptors = " SceneBufferResourceCountStr  ", space = 6" BigRangeFlags " ) )," \
-                       "DescriptorTable( SRV( t7, numDescriptors = " Scene2DResourceCountStr      ", space = 7" BigRangeFlags " ) )," \
-                       "DescriptorTable( SRV( t8, numDescriptors = " Scene2DResourceCountStr      ", space = 8" BigRangeFlags " ) )," \
-                       "DescriptorTable( SRV( t9, numDescriptors = " Engine2DTileTexturesCountStr ", space = 9" BigRangeFlags " ) )," \
+                       "DescriptorTable( SRV( t5, numDescriptors = " SceneBufferResourceCountStr ", space = 5" BigRangeFlags " ) )," \
+                       "DescriptorTable( SRV( t6, numDescriptors = " SceneBufferResourceCountStr ", space = 6" BigRangeFlags " ) )," \
+                       "DescriptorTable( SRV( t7, numDescriptors = " Scene2DResourceCountStr     ", space = 7" BigRangeFlags " ) )," \
                        "StaticSampler( s0," \
                        "               filter = FILTER_MIN_MAG_MIP_LINEAR," \
                        "               addressU = TEXTURE_ADDRESS_WRAP," \

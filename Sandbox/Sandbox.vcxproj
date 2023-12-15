@@ -158,6 +158,7 @@ copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
     <ClCompile Include="Render\D3D12\D3DDevice.cpp" />
     <ClCompile Include="Render\D3D12\D3DFactory.cpp" />
     <ClCompile Include="Render\D3D12\D3DGPUTimeQuery.cpp" />
+    <ClCompile Include="Render\D3D12\D3DMemoryHeap.cpp" />
     <ClCompile Include="Render\D3D12\D3DTileHeap.cpp" />
     <ClCompile Include="Render\D3D12\D3DPipelineState.cpp" />
     <ClCompile Include="Render\D3D12\D3DRTShaders.cpp" />
@@ -185,6 +186,7 @@ copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
     <ClInclude Include="..\External\D3D12MemoryAllocator\D3D12MemAlloc.h" />
     <ClInclude Include="..\External\DirectXTex\DDSTextureLoader\DDSTextureLoader12.h" />
     <ClInclude Include="..\External\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="Common\AsyncJobThread.h" />
     <ClInclude Include="Common\Color.h" />
     <ClInclude Include="Common\Files.h" />
     <ClInclude Include="Common\Finally.h" />
@@ -214,6 +216,7 @@ copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
     <ClInclude Include="Render\D3D12\D3DDevice.h" />
     <ClInclude Include="Render\D3D12\D3DFactory.h" />
     <ClInclude Include="Render\D3D12\D3DGPUTimeQuery.h" />
+    <ClInclude Include="Render\D3D12\D3DMemoryHeap.h" />
     <ClInclude Include="Render\D3D12\D3DTileHeap.h" />
     <ClInclude Include="Render\D3D12\D3DPipelineState.h" />
     <ClInclude Include="Render\D3D12\D3DRTShaders.h" />
@@ -233,6 +236,7 @@ copy $(SolutionDir)External\NRD\bin\NRD.dll $(OutDir)NRD.dll
     <ClInclude Include="Render\GPUTimeQuery.h" />
     <ClInclude Include="Render\Halton.h" />
     <ClInclude Include="Render\MeasureCPUTime.h" />
+    <ClInclude Include="Render\MemoryHeap.h" />
     <ClInclude Include="Render\TileHeap.h" />
     <ClInclude Include="Render\Mesh.h" />
     <ClInclude Include="Render\ModelFeatures.h" />

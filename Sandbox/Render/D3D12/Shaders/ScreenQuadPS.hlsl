@@ -12,38 +12,12 @@ float4 main( VertexOutput input ) : SV_Target0
 
   if ( sceneTextureId < 0xFFFF )
   {
-    #if ENABLE_TEXTURE_STREAMING
-      uint2 texSize;
-      float noLevels;
-      scene2DTextures[ sceneTextureId ].GetDimensions( mipLevel, texSize.x, texSize.y, noLevels );
-
-      if ( mipLevel >= noLevels - 1 )
-      {
-        uint mipOffset = texture.Load( uint3( 0, 0, noLevels - 1 ) ).x;
-        texel = scene2DMipTailTextures[ sceneTextureId ].SampleLevel( textureSampler, input.texcoord, mipLevel - mipOffset );
-        isMapped = true;
-      }
-      else
-      {
-        // Check if the index texture has this
-        int2 tci = input.texcoord * texSize;
-        tci %= texSize;
-        uint2 tileInfo = scene2DTextures[ sceneTextureId ].Load( uint3( tci, mipLevel ) );
-        if ( tileInfo.y < 0xFFFE )
-        {
-          uint  tileTextureIndex = tileInfo.y;
-          uint2 tileCoord        = uint2( tileInfo.x & 255, tileInfo.x >> 8 );
-  
-          float2 pc = fmod( input.texcoord * texSize * TileSizeF, TileSizeF );
-          pc /= TileTextureSizeF;
-          pc += tileCoord * ( TileSizeWithBorderF / TileTextureSizeF );
-  
-          texel = engine2DTileTextures[ tileTextureIndex ].SampleLevel( textureSampler, pc, 0 );
-          isMapped = true;
-        } 
-      }
+    #if TEXTURE_STREAMING_MODE == TEXTURE_STREAMING_RESERVED
+      uint status;
+      texel = scene2DTextures[ sceneTextureId ].SampleLevel( textureSampler, input.texcoord, mipLevel, 0, status );
+      isMapped = CheckAccessFullyMapped( status );
     #else
-      return scene2DTextures[ sceneTextureId ].SampleLevel( textureSampler, input.texcoord, mipLevel );
+      texel = scene2DTextures[ sceneTextureId ].SampleLevel( textureSampler, input.texcoord, mipLevel );
     #endif
   }
   else

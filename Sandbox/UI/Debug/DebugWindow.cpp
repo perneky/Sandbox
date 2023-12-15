@@ -140,6 +140,11 @@ void DebugWindow::Tick( CommandList& commandList, double timeElapsed )
 
       if ( renderTexture )
         ImGui::SliderInt( "Texture index", &renderTextureIndex, 0, memoryStats.textureCount - 1 );
+
+      ImGui::Checkbox( "Render heap texture", &renderHeapTexture );
+
+      if ( renderHeapTexture )
+        ImGui::SliderInt( "Heap texture index", &renderHeapTextureIndex, 0, 1 );
     }
   }
   ImGui::End();
@@ -168,6 +173,11 @@ float DebugWindow::GetManualExposure() const
 int DebugWindow::GetDebugTextureIndex() const
 {
   return renderTexture ? renderTextureIndex : -1;
+}
+
+int DebugWindow::GetDebugHeapTextureIndex() const
+{
+  return renderHeapTexture ? renderHeapTextureIndex : -1;
 }
 
 bool DebugWindow::GetFreezeCulling() const

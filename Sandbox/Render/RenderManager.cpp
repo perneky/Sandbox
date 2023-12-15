@@ -46,19 +46,24 @@ void RenderManager::DeleteInstance()
 
 void RenderManager::UpdateBeforeFrame( CommandList& commandList )
 {
-  textureStreamer->UpdateBeforeFrame( *device, commandList );
+  textureStreamer->UpdateBeforeFrame( *device, commandQueueManager->GetQueue( CommandQueueType::Copy ), commandList);
 }
 
-TextureStreamer::UpdateResult RenderManager::UpdateAfterFrame( CommandList& commandList, CommandQueueType commandQueueType, uint64_t fence )
+TextureStreamer::UpdateResult RenderManager::UpdateAfterFrame( CommandList& commandList, uint64_t fence )
 {
-  #if ENABLE_TEXTURE_STREAMING
+  #if TEXTURE_STREAMING_MODE != TEXTURE_STREAMING_OFF
     if ( pendingGlobalTextureReadbackFence )
     {
       if ( commandQueueManager->GetQueue( CommandQueueType::Direct ).IsFenceComplete( pendingGlobalTextureReadbackFence ) )
       {
         uint32_t* feedbackData = (uint32_t*)globalTextureFeedbackReadbackBuffer->Map();
 
-        auto streamingCommandLists = textureStreamer->UpdateAfterFrame( *device, commandQueueManager->GetQueue( commandQueueType ), commandList, fence, feedbackData );
+        auto streamingCommandLists = textureStreamer->UpdateAfterFrame( *device
+                                                                      , commandQueueManager->GetQueue( CommandQueueType::Direct )
+                                                                      , commandQueueManager->GetQueue( CommandQueueType::Copy )
+                                                                      , commandList
+                                                                      , fence
+                                                                      , feedbackData );
 
         globalTextureFeedbackReadbackBuffer->Unmap();
 
@@ -124,8 +129,6 @@ void RenderManager::RenderDebugTexture( CommandList& commandList, int texIndex, 
     commandList.SetPrimitiveType( PrimitiveType::TriangleStrip );
     commandList.SetConstantValues( 0, quadParams, 0 );
     commandList.SetDescriptorHeap( 2, RenderManager::GetInstance().GetShaderResourceHeap(), Scene2DResourceBaseSlot );
-    commandList.SetDescriptorHeap( 3, RenderManager::GetInstance().GetShaderResourceHeap(), Scene2DMipTailBaseSlot );
-    commandList.SetDescriptorHeap( 4, RenderManager::GetInstance().GetShaderResourceHeap(), Engine2DTileTexturesBaseSlot );
     commandList.Draw( 4 );
 
     RECT newArea = {};
@@ -136,6 +139,34 @@ void RenderManager::RenderDebugTexture( CommandList& commandList, int texIndex, 
 
     area = newArea;
   }
+}
+
+void RenderManager::RenderDebugHeapTexture( CommandList& commandList, int texIndex, int screenWidth, int screenHeight, DebugOutput debugOutput )
+{
+  struct
+  {
+    XMFLOAT2    leftTop;
+    XMFLOAT2    widthHeight;
+    uint32_t    mipLevel;
+    uint32_t    sceneTextureId;
+    DebugOutput debugOutput;
+  } quadParams;
+
+  quadParams.leftTop.x      = -1;
+  quadParams.leftTop.y      = 1;
+  quadParams.widthHeight.x  = 2;
+  quadParams.widthHeight.y  = -2;
+  quadParams.mipLevel       = 0;
+  quadParams.sceneTextureId = texIndex;
+  quadParams.debugOutput    = debugOutput;
+
+  commandList.SetPipelineState( GetPipelinePreset( PipelinePresets::QuadDebug ) );
+  commandList.SetVertexBufferToNull();
+  commandList.SetIndexBufferToNull();
+  commandList.SetPrimitiveType( PrimitiveType::TriangleStrip );
+  commandList.SetConstantValues( 0, quadParams, 0 );
+  commandList.SetDescriptorHeap( 2, RenderManager::GetInstance().GetShaderResourceHeap(), Engine2DTileTexturesBaseSlot );
+  commandList.Draw( 4 );
 }
 
 void RenderManager::IdleGPU()
@@ -164,9 +195,9 @@ void RenderManager::SetUp( CommandList& commandList, const eastl::wstring& textu
     t.a = 4;
   }
 
-  randomTexture = device->CreateVolumeTexture( commandList, noiseSize, noiseSize, noiseSize, noiseTexels.data(), int( noiseTexels.size() * 4 ), PixelFormat::RGBA1010102UN, RandomTextureSlot, eastl::nullopt, L"NoiseVolume" );
+  randomTexture = device->CreateVolumeTexture( &commandList, noiseSize, noiseSize, noiseSize, noiseTexels.data(), int( noiseTexels.size() * 4 ), PixelFormat::RGBA1010102UN, RandomTextureSlot, eastl::nullopt, L"NoiseVolume" );
 
-  #if ENABLE_TEXTURE_STREAMING
+  #if TEXTURE_STREAMING_MODE != TEXTURE_STREAMING_OFF
     textureStreamer = eastl::make_unique< TiledTextureStreamer >( *device );
   #else
     textureStreamer = eastl::make_unique< ImmediateTextureStreamer >();
@@ -277,7 +308,7 @@ CommandQueue& RenderManager::GetCommandQueue( CommandQueueType type )
 
 Resource* RenderManager::GetGlobalTextureFeedbackBuffer( CommandList& commandList )
 {
-  #if ENABLE_TEXTURE_STREAMING
+  #if TEXTURE_STREAMING_MODE != TEXTURE_STREAMING_OFF
     if ( !globalTextureFeedbackBuffer )
     {
       auto texStats = textureStreamer->GetMemoryStats();
@@ -302,7 +333,7 @@ Resource* RenderManager::GetGlobalTextureFeedbackBuffer( CommandList& commandLis
       uint32_t clear[] = { 255, 255, 255, 255 };
       commandList.ClearUnorderedAccess( *globalTextureFeedbackBuffer, clear );
     }
-  #endif // 0
+  #endif
 
   return globalTextureFeedbackBuffer.get();
 }
@@ -414,6 +445,8 @@ RenderManager::RenderManager( eastl::shared_ptr< Window > window )
 
   swapchain = factory->CreateSwapchain( *device, commandQueueManager->GetQueue( CommandQueueType::Direct ), *window );
   swapchain->BuildBackBufferTextures( *device );
+
+  device->PreallocateTiles( commandQueueManager->GetQueue( CommandQueueType::Direct ) );
 
   {
     auto vertexShader = ReadFileToMemory( L"Content/Shaders/ModelTranslucentVS.cso" );

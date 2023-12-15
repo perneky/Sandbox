@@ -44,4 +44,4 @@ struct Denoiser
                                , bool enableValidation ) = 0;
 };
 
-eastl::unique_ptr< Denoiser > CreateDenoiser( Device& device, CommandQueue& commandQueue, CommandList& commandList, int width, int height );
+eastl::unique_ptr< Denoiser > CreateDenoiser( Device& device, CommandQueue& directQueue, CommandList& commandList, int width, int height );

@@ -2,10 +2,21 @@
 
 #include "../CommandQueue.h"
 #include "../Types.h"
+#include "Common/AsyncJobThread.h"
 
 struct Fence;
 
-class D3DCommandQueue : public CommandQueue
+struct TileMappingJob
+{
+  Resource& resource;
+  int tileX;
+  int tileY;
+  int mip;
+  MemoryHeap* heap;
+  int heapStartOffsetInTiles;
+};
+
+class D3DCommandQueue : public CommandQueue, public AsyncJobThread< TileMappingJob >
 {
   friend class D3DDevice;
 
@@ -27,12 +38,14 @@ public:
 
   uint64_t GetFrequency() override;
 
-  ID3D12CommandQueue* GetD3DCommandQueue();
+  void UpdateTileMapping( Resource& resource, int tileX, int tileY, int mip, MemoryHeap* heap, int heapStartOffsetInTiles ) override;
 
-  void UpdateTileMapping( ID3D12Resource* resource, const D3D12_TILED_RESOURCE_COORDINATE& resourceRegionStartCoordinate, ID3D12Heap* heap, UINT heapRangeStartOffset );
+  ID3D12CommandQueue* GetD3DCommandQueue();
 
 private:
   D3DCommandQueue( D3DDevice& device, CommandQueueType type );
+
+  void DoUpdateTileMapping( Resource& resource, int tileX, int tileY, int mip, MemoryHeap* heap, int heapStartOffsetInTiles );
 
   CommandQueueType              type;
   CComPtr< ID3D12CommandQueue > d3dCommandQueue;
@@ -45,18 +58,4 @@ private:
   eastl::mutex eventMutex;
 
   HANDLE fenceEventHandle;
-
-  using TileMappingKey = eastl::pair< CComPtr< ID3D12Resource >, CComPtr< ID3D12Heap > >;
-  struct TileMapping
-  {
-    eastl::vector < D3D12_TILED_RESOURCE_COORDINATE > resourceRegionStartCoordinates;
-    eastl::vector < D3D12_TILE_REGION_SIZE > tileRegionSizes;
-    eastl::vector < D3D12_TILE_RANGE_FLAGS > rangeFlags;
-    eastl::vector < UINT > heapRangeStartOffsets;
-    eastl::vector < UINT > rangeTileCounts;
-  };
-
-  eastl::map< TileMappingKey, TileMapping > pendingTileMappings;
-
-  CRITICAL_SECTION tileMappingLock;
 };

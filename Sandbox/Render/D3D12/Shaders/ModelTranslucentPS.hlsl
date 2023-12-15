@@ -73,13 +73,8 @@ float4 main( VertexOutput input, bool isFrontFace : SV_IsFrontFace ) : SV_Target
   half  metallic      = materials[ materialIndex ].roughness_metallic.y;
 
   half textureMip = 0;
-  int texIndex = ENABLE_TEXTURE_STREAMING ? materials[ materialIndex ].albedoTextureRefIndex : materials[ materialIndex ].albedoTextureIndex;
-  if ( texIndex > -1 )
-    #if ENABLE_TEXTURE_STREAMING
-      textureMip = half( engine2DReferenceTextures[ texIndex ].CalculateLevelOfDetail( anisotropicWrapSampler, input.texcoord ) );
-    #else
-      textureMip = half( scene2DTextures[ texIndex ].CalculateLevelOfDetail( anisotropicWrapSampler, input.texcoord ) );
-    #endif
+  if ( materials[ materialIndex ].albedoTextureIndex > -1 )
+    textureMip = half( scene2DTextures[ materials[ materialIndex ].albedoTextureIndex ].CalculateLevelOfDetail( anisotropicWrapSampler, input.texcoord ) );
   
   if ( materials[ materialIndex ].albedoTextureIndex >= 0 )
   {

@@ -22,13 +22,8 @@ PixelOutput main( VertexOutput input, bool isFrontFace : SV_IsFrontFace )
   
   bool isAlphaTested = false;
   
-  int texIndex = ENABLE_TEXTURE_STREAMING ? materials[ materialIndex ].albedoTextureRefIndex : materials[ materialIndex ].albedoTextureIndex;
-  if ( texIndex > -1 )
-    #if ENABLE_TEXTURE_STREAMING
-      output.textureMip = engine2DReferenceTextures[ texIndex ].CalculateLevelOfDetail( anisotropicWrapSampler, input.texcoord );
-    #else
-      output.textureMip = scene2DTextures[ texIndex ].CalculateLevelOfDetail( anisotropicWrapSampler, input.texcoord );
-    #endif
+  if ( materials[ materialIndex ].albedoTextureIndex > -1 )
+    output.textureMip = scene2DTextures[ materials[ materialIndex ].albedoTextureIndex ].CalculateLevelOfDetail( anisotropicWrapSampler, input.texcoord );
   else
     output.textureMip = 0;
   

@@ -8,7 +8,7 @@
 
 static constexpr int BackBufferCount = 2;
 
-D3DSwapchain::D3DSwapchain( D3DFactory& factory, D3DCommandQueue& queue, D3DDevice& device, WinAPIWindow& window )
+D3DSwapchain::D3DSwapchain( D3DFactory& factory, D3DCommandQueue& directQueue, D3DDevice& device, WinAPIWindow& window )
 {
   auto dxgiFactory = factory.GetDXGIFactory();
 
@@ -29,7 +29,7 @@ D3DSwapchain::D3DSwapchain( D3DFactory& factory, D3DCommandQueue& queue, D3DDevi
   swapChainDesc.Flags       = isTearingEnabled ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
   CComPtr< IDXGISwapChain1 > swapChain1;
-  dxgiFactory->CreateSwapChainForHwnd( queue.GetD3DCommandQueue()
+  dxgiFactory->CreateSwapChainForHwnd( directQueue.GetD3DCommandQueue()
                                      , window.GetWindowHandle()
                                      , &swapChainDesc
                                      , nullptr

@@ -62,54 +62,18 @@ static ResourceType GetD3DResourceType( ID3D12Resource* d3dResource )
   }
 }
 
-void D3DResource::UpdateIndex( Device& device, CommandList& commandList, const TileStats& stats )
+void D3DResource::SetupForStreaming( eastl::unique_ptr< Resource >&& feedbackTexture
+                                   , eastl::unique_ptr< FileLoaderFile >&& fileHandle
+                                   , int firstMipLevelPosition
+                                   , HeapAllocator heapAllocator )
 {
-  auto uploadResource = device.AllocateUploadBuffer( sizeof( uint32_t ) );
+  this->feedbackTexture       = eastl::forward< eastl::unique_ptr< Resource > >( feedbackTexture );
+  this->streamingFileHandle   = eastl::forward< eastl::unique_ptr< FileLoaderFile > >( fileHandle );
+  this->firstMipLevelPosition = firstMipLevelPosition;
+  this->heapAllocator         = heapAllocator;
 
-  uint32_t* indexData = (uint32_t*)uploadResource->Map();
-
-  *indexData = ( uint32_t( stats.allocation.textureSlot ) << 16 ) | uint32_t( stats.allocation.y << 8 ) | uint32_t( stats.allocation.x );
-
-  uploadResource->Unmap();
-
-  commandList.ChangeResourceState( *indexTexture, ResourceStateBits::CopyDestination );
-
-  commandList.UploadTextureRegion( eastl::move( uploadResource ), *indexTexture, stats.mip, stats.tx, stats.ty, 1, 1 );
-}
-
-D3DResource::D3DResource( D3DDevice& d3dDevice
-                        , eastl::unique_ptr< Resource >&& mipTailTexture
-                        , eastl::unique_ptr< Resource >&& indexTexture
-                        , eastl::unique_ptr< Resource >&& feedbackTexture
-                        , eastl::unique_ptr< FileLoaderFile >&& fileHandle
-                        , int firstMipLevelPosition
-                        , HeapAllocator heapAllocator
-                        , int mipLevels
-                        , int width
-                        , int height )
-  : mipTailTexture       ( eastl::forward< eastl::unique_ptr< Resource > >( mipTailTexture ) )
-  , indexTexture         ( eastl::forward< eastl::unique_ptr< Resource > >( indexTexture ) )
-  , feedbackTexture      ( eastl::forward< eastl::unique_ptr< Resource > >( feedbackTexture ) )
-  , streamingFileHandle  ( eastl::forward< eastl::unique_ptr< FileLoaderFile > >( fileHandle ) )
-  , firstMipLevelPosition( firstMipLevelPosition )
-  , heapAllocator        ( heapAllocator )
-  , mipLevels            ( mipLevels )
-  , width                ( width )
-  , height               ( height )
-  , resourceType         ( ResourceType::Texture2D )
-{
-  debugName = GetResourceName( static_cast< D3DResource& >( *this->indexTexture ).GetD3DResource() );
-
-  tileMapping.resize( this->indexTexture->GetTextureMipLevels() );
-
-  int htiles = this->indexTexture->GetTextureWidth ();
-  int vtiles = this->indexTexture->GetTextureHeight();
-  for ( int mipLevel = 0; mipLevel < int( tileMapping.size() ); ++mipLevel )
-  {
-    tileMapping[ mipLevel ].resize( htiles * vtiles );
-    htiles = eastl::max( htiles / 2, 1 );
-    vtiles = eastl::max( vtiles / 2, 1 );
-  }
+  int htiles = subresourceTiling.WidthInTiles;
+  int vtiles = subresourceTiling.HeightInTiles;
 
   D3D12_HEAP_PROPERTIES resolvedFeedbackHeapDesc = {};
   resolvedFeedbackHeapDesc.Type                 = D3D12_HEAP_TYPE_READBACK;
@@ -119,7 +83,7 @@ D3DResource::D3DResource( D3DDevice& d3dDevice
   D3D12_RESOURCE_DESC resolvedFeedbackDesc = {};
   resolvedFeedbackDesc.Dimension          = D3D12_RESOURCE_DIMENSION_BUFFER;
   resolvedFeedbackDesc.Alignment          = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-  resolvedFeedbackDesc.Width              = UINT( this->indexTexture->GetTextureWidth() * this->indexTexture->GetTextureHeight() * sizeof( uint32_t ) );
+  resolvedFeedbackDesc.Width              = htiles * vtiles * sizeof( uint32_t );
   resolvedFeedbackDesc.Height             = 1;
   resolvedFeedbackDesc.DepthOrArraySize   = 1;
   resolvedFeedbackDesc.MipLevels          = 1;
@@ -129,81 +93,91 @@ D3DResource::D3DResource( D3DDevice& d3dDevice
   resolvedFeedbackDesc.Layout             = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
   resolvedFeedbackDesc.Flags              = D3D12_RESOURCE_FLAG_NONE;
 
+  CComPtr< ID3D12Device > d3dDevice;
+  d3dResource->GetDevice( IID_PPV_ARGS( &d3dDevice ) );
+
   CComPtr< ID3D12Resource > resolvedFeedback;
-  d3dDevice.GetD3DDevice()->CreateCommittedResource( &resolvedFeedbackHeapDesc, D3D12_HEAP_FLAG_NONE, &resolvedFeedbackDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS( &resolvedFeedback ) );
+  d3dDevice->CreateCommittedResource( &resolvedFeedbackHeapDesc, D3D12_HEAP_FLAG_NONE, &resolvedFeedbackDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS( &resolvedFeedback ) );
 
   d3dFeedbackResolved = AllocatedResource( resolvedFeedback );
+
+  tileMapping.resize( d3dResource->GetDesc().MipLevels );
+
+  for ( int mipLevel = 0; mipLevel < int( tileMapping.size() ); ++mipLevel )
+  {
+    tileMapping[ mipLevel ].resize( htiles * vtiles );
+    htiles = eastl::max( htiles / 2, 1 );
+    vtiles = eastl::max( vtiles / 2, 1 );
+  }
 }
 
-bool D3DResource::ManageTile( D3DDevice& d3dDevice
-                            , D3DCommandList& d3dCommandList
+bool D3DResource::ManageTile( Device& device
+                            , CommandQueue& graphicsQueue
+                            , CommandQueue& copyQueue
+                            , CommandList& commandList
                             , int tx
                             , int ty
                             , int mipLevel
                             , uint64_t frameNo
                             , int globalFeedback )
 {
-  auto mipsToProcess = indexTexture->GetTextureMipLevels() - 1;
+  auto mipsToProcess = int( packedMipInfo.NumStandardMips );
 
   for ( int mip = globalFeedback; mip < eastl::min( mipLevel, mipsToProcess ); ++mip )
   {
     int mipTx = tx / ( 1 << mip );
     int mipTy = ty / ( 1 << mip );
-    int htiles = eastl::max( indexTexture->GetTextureWidth () >> mip, 1 );
-    int vtiles = eastl::max( indexTexture->GetTextureHeight() >> mip, 1 );
+    int htiles = eastl::max( int( subresourceTiling.WidthInTiles  ) >> mip, 1 );
+    int vtiles = eastl::max( int( subresourceTiling.HeightInTiles ) >> mip, 1 );
 
     auto& stats = tileMapping[ mip ][ mipTy * htiles + mipTx ];
-    if ( !stats.allocation.heap )
+    if ( !stats.allocation.tileHeap )
       continue;
 
     if ( stats.lastUsedFrame == frameNo - 50 )
-      DropTile( d3dDevice, d3dCommandList, stats );
+      DropTile( device, copyQueue, commandList, stats );
   }
-
-  bool indexIsSRV = true;
 
   for ( int mip = mipLevel; mip < mipsToProcess; ++mip )
   {
     int mipTx = tx / ( 1 << mip );
     int mipTy = ty / ( 1 << mip );
-    int htiles = eastl::max( indexTexture->GetTextureWidth () >> mip, 1 );
-    int vtiles = eastl::max( indexTexture->GetTextureHeight() >> mip, 1 );
+    int htiles = eastl::max( int( subresourceTiling.WidthInTiles  ) >> mip, 1 );
+    int vtiles = eastl::max( int( subresourceTiling.HeightInTiles ) >> mip, 1 );
 
     auto& stats = tileMapping[ mip ][ mipTy * htiles + mipTx ];
 
-    if ( stats.allocation.heap )
+    if ( stats.allocation.tileHeap )
     {
       stats.lastUsedFrame = frameNo;
       continue;
     }
 
-    auto tileMemorySize = CalcTileMemorySize( mipTailTexture->GetTexturePixelFormat() );
-
     // Load data from file
     int mipStart = 0;
     for ( int cnt = 0; cnt < mip; ++cnt )
     {
-      int htiles = eastl::max( indexTexture->GetTextureWidth () >> cnt, 1 );
-      int vtiles = eastl::max( indexTexture->GetTextureHeight() >> cnt, 1 );
+      int htiles = eastl::max( int( subresourceTiling.WidthInTiles  ) >> cnt, 1 );
+      int vtiles = eastl::max( int( subresourceTiling.HeightInTiles ) >> cnt, 1 );
 
-      mipStart += tileMemorySize * htiles * vtiles;
+      mipStart += D3D12_TILED_RESOURCE_TILE_SIZE_IN_BYTES * htiles * vtiles;
     }
 
-    int mipHTiles = eastl::max( indexTexture->GetTextureWidth() >> mip, 1 );
-    int tileStart = tileMemorySize * ( mipTy * mipHTiles + mipTx );
+    int mipHTiles = eastl::max( int( subresourceTiling.WidthInTiles ) >> mip, 1 );
+    int tileStart = D3D12_TILED_RESOURCE_TILE_SIZE_IN_BYTES * ( mipTy * mipHTiles + mipTx );
 
-    stats.allocation    = heapAllocator( d3dDevice, d3dCommandList );
+    stats.allocation    = heapAllocator( device, commandList );
     stats.tx            = mipTx;
     stats.ty            = mipTy;
     stats.mip           = mip;
     stats.lastUsedFrame = frameNo;
-    streamingFileHandle->LoadSingleTile( d3dDevice
-                                       , d3dCommandList
+    streamingFileHandle->LoadSingleTile( device
+                                       , commandList
                                        , stats.allocation
                                        , firstMipLevelPosition + mipStart + tileStart
-                                       , [this, stats]( Device& device, CommandList& commandList )
+                                       , [this, stats]( Device& device, CommandQueue& copyQueue, CommandList& commandList )
                                          {
-                                           UpdateIndex( static_cast< D3DDevice& >( device ), static_cast< D3DCommandList& >( commandList ), stats );
+                                           UpdateTile( device, copyQueue, commandList, stats );
                                            ++allocatedTileCount;
                                          } );
   }
@@ -211,16 +185,21 @@ bool D3DResource::ManageTile( D3DDevice& d3dDevice
   return mipLevel < mipsToProcess;
 }
 
-void D3DResource::DropTile( D3DDevice& d3dDevice, D3DCommandList& d3dCommandList, TileStats& stats )
+void D3DResource::DropTile( Device& device, CommandQueue& copyQueue, CommandList& commandList, TileStats& stats )
 {
-  stats.allocation.heap->free( stats.allocation );
-  stats.allocation.heap        = nullptr;
+  stats.allocation.tileHeap->free( stats.allocation );
+  stats.allocation.tileHeap    = nullptr;
+  stats.allocation.memoryHeap  = nullptr;
   stats.allocation.texture     = nullptr;
-  stats.allocation.textureSlot = 0xFFFE;
 
   --allocatedTileCount;
 
-  UpdateIndex( d3dDevice, d3dCommandList, stats );
+  UpdateTile( device, copyQueue, commandList, stats );
+}
+
+void D3DResource::UpdateTile( Device& device, CommandQueue& copyQueue, CommandList& commandList, const TileStats& stats )
+{
+  copyQueue.UpdateTileMapping( *this, stats.tx, stats.ty, stats.mip, stats.allocation.memoryHeap, stats.allocation.y * TileCount + stats.allocation.x );
 }
 
 D3DResource::D3DResource( AllocatedResource&& allocation, ResourceState initialState )
@@ -235,6 +214,12 @@ D3DResource::D3DResource( AllocatedResource&& allocation, ResourceState initialS
   resourceType = GetD3DResourceType( *d3dResource );
 
   isUploadResource = false; // Is this always true?
+
+  CComPtr< ID3D12Device > d3dDevice;
+  d3dResource->GetDevice( IID_PPV_ARGS( &d3dDevice ) );
+
+  UINT numSubresourceTilings = 1;
+  d3dDevice->GetResourceTiling( *d3dResource, nullptr, &packedMipInfo, &tileShape, &numSubresourceTilings, 0, &subresourceTiling );
 }
 
 D3DResource::D3DResource( D3D12MA::Allocation* allocation, ResourceState initialState )
@@ -249,6 +234,12 @@ D3DResource::D3DResource( D3D12MA::Allocation* allocation, ResourceState initial
   resourceType = GetD3DResourceType( *d3dResource );
 
   isUploadResource = false; // Is this always true?
+
+  CComPtr< ID3D12Device > d3dDevice;
+  d3dResource->GetDevice( IID_PPV_ARGS( &d3dDevice ) );
+
+  UINT numSubresourceTilings = 1;
+  d3dDevice->GetResourceTiling( *d3dResource, nullptr, &packedMipInfo, &tileShape, &numSubresourceTilings, 0, &subresourceTiling );
 }
 
 D3DResource::D3DResource( D3DDevice& device, ResourceType resourceType, HeapType heapType, bool unorderedAccess, int size, int elementSize, const wchar_t* debugName )
@@ -374,6 +365,16 @@ int D3DResource::GetTextureMipLevels() const
   return mipLevels;
 }
 
+int D3DResource::GetTextureTileWidth() const
+{
+  return int( tileShape.WidthInTexels );
+}
+
+int D3DResource::GetTextureTileHeight() const
+{
+  return int( tileShape.HeightInTexels );
+}
+
 PixelFormat D3DResource::GetTexturePixelFormat() const
 {
   auto desc = d3dResource->GetDesc();
@@ -417,28 +418,9 @@ PixelFormat D3DResource::GetTexturePixelFormat() const
 uint64_t D3DResource::GetVirtualAllocationSize() const
 {
   CComPtr< ID3D12Device > d3dDevice;
-  if ( d3dResource )
-    d3dResource->GetDevice( IID_PPV_ARGS( &d3dDevice ) );
-  else
-    static_cast< D3DResource* >( indexTexture.get() )->GetD3DResource()->GetDevice( IID_PPV_ARGS( &d3dDevice ) );
+  d3dResource->GetDevice( IID_PPV_ARGS( &d3dDevice ) );
 
-  D3D12_RESOURCE_DESC desc = {};
-  if ( d3dResource )
-    desc = d3dResource->GetDesc();
-  else
-  {
-    desc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    desc.Alignment          = 0;
-    desc.Width              = width;
-    desc.Height             = height;
-    desc.DepthOrArraySize   = 1;
-    desc.MipLevels          = mipLevels;
-    desc.Format             = Convert( mipTailTexture->GetTexturePixelFormat() );
-    desc.SampleDesc.Count   = 1;
-    desc.SampleDesc.Quality = 0;
-    desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-    desc.Flags              = D3D12_RESOURCE_FLAG_NONE;
-  }
+  D3D12_RESOURCE_DESC desc = d3dResource->GetDesc();
 
   auto allocationInfo = d3dDevice->GetResourceAllocationInfo( 0, 1, &desc );
   return allocationInfo.SizeInBytes;
@@ -446,21 +428,22 @@ uint64_t D3DResource::GetVirtualAllocationSize() const
 
 uint64_t D3DResource::GetPhysicalAllocationSize() const
 {
-  if ( d3dResource )
+  if ( feedbackTexture )
+  {
+    uint64_t memorySize = allocatedTileCount * D3D12_TILED_RESOURCE_TILE_SIZE_IN_BYTES
+                        + feedbackTexture->GetPhysicalAllocationSize();
+
+    return memorySize;
+  }
+  else
   {
     auto desc = d3dResource->GetDesc();
     CComPtr< ID3D12Device > d3dDevice;
     d3dResource->GetDevice( IID_PPV_ARGS( &d3dDevice ) );
+
     auto allocationInfo = d3dDevice->GetResourceAllocationInfo( 0, 1, &desc );
     return allocationInfo.SizeInBytes;
   }
-
-  uint64_t memorySize = allocatedTileCount * CalcBlockSize( mipTailTexture->GetTexturePixelFormat() ) * ( TileSizeWithBorder * TileSizeWithBorder ) / 16
-                      + mipTailTexture->GetPhysicalAllocationSize()
-                      + indexTexture->GetPhysicalAllocationSize()
-                      + feedbackTexture->GetPhysicalAllocationSize();
-
-  return memorySize;
 }
 
 void* D3DResource::Map()
@@ -476,25 +459,23 @@ void D3DResource::Unmap()
   d3dResource->Unmap( 0, nullptr );
 }
 
-void D3DResource::UploadLoadedTiles( Device& device, CommandList& commandList )
+void D3DResource::UploadLoadedTiles( Device& device, CommandQueue& copyQueue, CommandList& commandList )
 {
   if ( streamingFileHandle )
-    streamingFileHandle->UploadLoadedTiles( device, commandList );
+    streamingFileHandle->UploadLoadedTiles( device, copyQueue, commandList );
 }
 
-void D3DResource::EndFeedback( CommandQueue& commandQueue, Device& device, CommandList& commandList, uint64_t fence, uint64_t frameNo, int globalFeedback )
+void D3DResource::EndFeedback( CommandQueue& graphicsQueue, CommandQueue& copyQueue, Device& device, CommandList& commandList, uint64_t fence, uint64_t frameNo, int globalFeedback )
 {
-  if ( pendingResolveFence && !commandQueue.IsFenceComplete( pendingResolveFence ) )
+  if ( pendingResolveFence && !graphicsQueue.IsFenceComplete( pendingResolveFence ) )
     return;
 
-  auto resetState = eastl::make_finally( [&]() { commandList.ChangeResourceState( *indexTexture, ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput ); } );
-
-  auto mipsToProcess = indexTexture->GetTextureMipLevels() - 1;
+  auto mipsToProcess = int( packedMipInfo.NumStandardMips );
 
   for ( int mip = 0; mip < eastl::min( globalFeedback, mipsToProcess ); ++mip )
     for ( auto& stats : tileMapping[ mip ] )
       if ( stats.allocation.texture && stats.lastUsedFrame == frameNo - 50 )
-        DropTile( static_cast< D3DDevice& >( device ), static_cast< D3DCommandList& >( commandList ), stats );
+        DropTile( device, copyQueue, commandList, stats );
 
   if ( globalFeedback >= mipsToProcess )
     return;
@@ -510,12 +491,14 @@ void D3DResource::EndFeedback( CommandQueue& commandQueue, Device& device, Comma
     uint32_t* minMips;
     d3dFeedbackResolved->Map( 0, nullptr, (void**)&minMips );
 
-    int htiles = indexTexture->GetTextureWidth();
-    int vtiles = indexTexture->GetTextureHeight();
+    int htiles = int( subresourceTiling.WidthInTiles  );
+    int vtiles = int( subresourceTiling.HeightInTiles );
     for ( int ty = 0; ty < vtiles; ++ty )
       for ( int tx = 0; tx < htiles; ++tx )
-        needFeedbackClear |= ManageTile( static_cast< D3DDevice& >( device )
-                                       , static_cast< D3DCommandList& >( commandList )
+        needFeedbackClear |= ManageTile( device
+                                       , graphicsQueue
+                                       , copyQueue
+                                       , commandList
                                        , tx
                                        , ty
                                        , minMips[ ty * htiles + tx ]

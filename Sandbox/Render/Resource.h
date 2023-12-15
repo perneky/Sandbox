@@ -29,6 +29,8 @@ struct Resource
   virtual int GetTextureHeight() const = 0;
   virtual int GetTextureDepthOrArraySize() const = 0;
   virtual int GetTextureMipLevels() const = 0;
+  virtual int GetTextureTileWidth() const = 0;
+  virtual int GetTextureTileHeight() const = 0;
   virtual PixelFormat GetTexturePixelFormat() const = 0;
 
   virtual uint64_t GetVirtualAllocationSize() const = 0;
@@ -37,9 +39,9 @@ struct Resource
   virtual void* Map() = 0;
   virtual void  Unmap() = 0;
 
-  virtual void UploadLoadedTiles( Device& device, CommandList& commandList ) = 0;
+  virtual void UploadLoadedTiles( Device& device, CommandQueue& copyQueue, CommandList& commandList ) = 0;
 
-  virtual void EndFeedback( CommandQueue& commandQueue, Device& device, CommandList& commandList, uint64_t fence, uint64_t frameNo, int globalFeedback ) = 0;
+  virtual void EndFeedback( CommandQueue& graphicsQueue, CommandQueue& copyQueue, Device& device, CommandList& commandList, uint64_t fence, uint64_t frameNo, int globalFeedback ) = 0;
 
   virtual FileLoaderFile* GetLoader() = 0;
 };

@@ -8,9 +8,6 @@
                        "DescriptorTable( SRV( t1, numDescriptors = " SceneBufferResourceCountStr      ", space = 1" BigRangeFlags " ) )," \
                        "DescriptorTable( SRV( t2, numDescriptors = " SceneBufferResourceCountStr      ", space = 2" BigRangeFlags " ) )," \
                        "DescriptorTable( SRV( t3, numDescriptors = " Scene2DResourceCountStr          ", space = 3" BigRangeFlags " ) )," \
-                       "DescriptorTable( SRV( t4, numDescriptors = " Scene2DResourceCountStr          ", space = 4" BigRangeFlags " ) )," \
-                       "DescriptorTable( SRV( t5, numDescriptors = " Engine2DTileTexturesCountStr     ", space = 5" BigRangeFlags " ) )," \
-                       "DescriptorTable( SRV( t6, numDescriptors = " Engine2DReferenceTextureCountStr ", space = 6 ) )," \
                        "StaticSampler( s0," \
                        "               filter = FILTER_MIN_MAG_MIP_LINEAR," \
                        "               addressU = TEXTURE_ADDRESS_WRAP," \
@@ -48,14 +45,7 @@ StructuredBuffer< MaterialSlot > materials : register( t0 );
 StructuredBuffer< VertexFormat > vertexBuffers[] : register( t1, space1 );
 StructuredBuffer< uint >         indexBuffers[]  : register( t2, space2 );
 
-#if ENABLE_TEXTURE_STREAMING
-  Texture2D< uint2 > scene2DTextures[]           : register( t3, space3 );
-  Texture2D< half4 > scene2DMipTailTextures[]    : register( t4, space4 );
-  Texture2D< half4 > engine2DTileTextures[]      : register( t5, space5 );
-  Texture2D< half4 > engine2DReferenceTextures[] : register( t6, space6 );
-#else
-  Texture2D< half4 > scene2DTextures[] : register( t3, space3 );
-#endif
+Texture2D< half4 > scene2DTextures[] : register( t3, space3 );
 
 SamplerState trilinearWrapSampler   : register( s0 );
 SamplerState trilinearClampSampler  : register( s1 );

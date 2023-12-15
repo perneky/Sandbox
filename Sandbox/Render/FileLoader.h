@@ -7,21 +7,18 @@ struct Device;
 struct CommandList;
 struct CommandQueue;
 struct Resource;
+struct TFFHeader;
 
 struct FileLoaderFile
 {
-  using OnTileLoadAction = eastl::function< void( Device& device, CommandList& commandList ) >;
+  using OnTileLoadAction = eastl::function< void( Device& device, CommandQueue& copyQueue, CommandList& commandList ) >;
 
   virtual ~FileLoaderFile() = default;
 
   virtual void LoadPackedMipTail( Device& device
                                 , CommandList& commandList
                                 , Resource& resource
-                                , int byteOffset
-                                , int byteCount
-                                , int mipCount
-                                , int firstMipHBlocks
-                                , int firstMipVBlocks
+                                , const TFFHeader& tffHeader
                                 , int blockSize ) = 0;
 
   virtual void LoadSingleTile( Device& device
@@ -30,7 +27,7 @@ struct FileLoaderFile
                              , int byteOffset
                              , OnTileLoadAction onTileLoadAction ) = 0;
 
-  virtual void UploadLoadedTiles( Device& device, CommandList& commandList ) = 0;
+  virtual void UploadLoadedTiles( Device& device, CommandQueue& copyQueue, CommandList& commandList ) = 0;
 };
 
 struct FileLoaderQueue

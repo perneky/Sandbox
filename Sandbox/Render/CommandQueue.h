@@ -3,6 +3,8 @@
 #include "Types.h"
 
 struct CommandList;
+struct Resource;
+struct MemoryHeap;
 
 struct CommandQueue
 {
@@ -22,4 +24,6 @@ struct CommandQueue
   virtual void WaitForIdle() = 0;
 
   virtual uint64_t GetFrequency() = 0;
+
+  virtual void UpdateTileMapping( Resource& resource, int tileX, int tileY, int mip, MemoryHeap* heap, int heapStartOffsetInTiles ) = 0;
 };

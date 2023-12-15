@@ -14,7 +14,7 @@ public:
   bool IsVRRSupported() const override;
 
   eastl::unique_ptr< Adapter >   CreateDefaultAdapter() override;
-  eastl::unique_ptr< Swapchain > CreateSwapchain( Device& device, CommandQueue& commandQueue, Window& window ) override;
+  eastl::unique_ptr< Swapchain > CreateSwapchain( Device& device, CommandQueue& directQueue, Window& window ) override;
 
 private:
   D3DFactory();

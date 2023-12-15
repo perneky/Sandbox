@@ -10,15 +10,15 @@ struct TextureStreamer
 {
   virtual ~TextureStreamer() = default;
 
-  virtual void CacheTexture( CommandQueue& commandQueue, CommandList& commandList, const eastl::wstring& path ) = 0;
+  virtual void CacheTexture( CommandQueue& directQueue, CommandList& commandList, const eastl::wstring& path ) = 0;
 
   virtual int GetTextureSlot( const eastl::wstring& path, int* refTexutreId = nullptr ) = 0;
   virtual Resource* GetTexture( int index ) = 0;
 
   using UpdateResult = eastl::vector< eastl::pair< eastl::unique_ptr< CommandList >, CommandAllocator* > >;
 
-  virtual void UpdateBeforeFrame( Device& device, CommandList& commandList ) = 0;
-  virtual UpdateResult UpdateAfterFrame( Device& device, CommandQueue& commandQueue, CommandList& syncCommandList, uint64_t fence, uint32_t* globalFeedback ) = 0;
+  virtual void UpdateBeforeFrame( Device& device, CommandQueue& copyQueue, CommandList& commandList ) = 0;
+  virtual UpdateResult UpdateAfterFrame( Device& device, CommandQueue& graphicsQueue, CommandQueue& copyQueue, CommandList& syncCommandList, uint64_t fence, uint32_t* globalFeedback ) = 0;
 
   virtual int Get2DTextureCount() const = 0;
 

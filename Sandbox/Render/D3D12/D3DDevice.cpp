@@ -10,6 +10,7 @@
 #include "D3DDescriptorHeap.h"
 #include "D3DRTBottomLevelAccelerator.h"
 #include "D3DRTTopLevelAccelerator.h"
+#include "D3DMemoryHeap.h"
 #include "D3DComputeShader.h"
 #include "D3DGPUTimeQuery.h"
 #include "D3DRTShaders.h"
@@ -175,6 +176,9 @@ D3DDevice::D3DDevice( D3DAdapter& adapter )
   mipmapGenComputeShader.reset( new D3DComputeShader( *this, shaderData.data(), int( shaderData.size() ), L"MipMapGen" ) );
 
   UpdateSamplers();
+
+  for ( auto pixelFormat : { PixelFormat::BC1UN, PixelFormat::BC2UN, PixelFormat::BC3UN, PixelFormat::BC4UN, PixelFormat::BC5UN } )
+    tileHeaps[ pixelFormat ].reset( new D3DTileHeap( *this, pixelFormat, L"D3DTileHeap" ) );
 }
 
 void D3DDevice::UpdateSamplers()
@@ -238,7 +242,6 @@ CComPtr< ID3D12Resource > D3DDevice::CreateTileUploadBuffer( ID3D12Resource* tar
 D3DDevice::~D3DDevice()
 {
   tileHeaps.clear();
-  referenceTextures.clear();
 
   if ( enableImGui )
     ImGui_ImplDX12_Shutdown();
@@ -348,23 +351,27 @@ eastl::unique_ptr< RTTopLevelAccelerator > D3DDevice::CreateRTTopLevelAccelerato
   return eastl::unique_ptr< RTTopLevelAccelerator >( new D3DRTTopLevelAccelerator( *this, *static_cast< D3DCommandList* >( &commandList ), eastl::move( instances ), slot ) );
 }
 
-eastl::unique_ptr< Resource > D3DDevice::CreateVolumeTexture( CommandList& commandList, int width, int height, int depth, const void* data, int dataSize, PixelFormat format, int slot, eastl::optional< int > uavSlot, const wchar_t* debugName )
+eastl::unique_ptr< Resource > D3DDevice::CreateVolumeTexture( CommandList* commandList, int width, int height, int depth, const void* data, int dataSize, PixelFormat format, int slot, eastl::optional< int > uavSlot, const wchar_t* debugName )
 {
-  auto resource = CreateTexture( commandList, width, height, depth, 1, format, 1, 0, false, slot, uavSlot, false, debugName );
+  auto resource = CreateTexture( commandList, width, height, depth, 1, format, 1, 0, false, slot, uavSlot, false, debugName, false );
+
+  assert( !data || commandList );
 
   if ( data )
   {
     auto texelSize = CalcTexelSize( format );
     D3D12_SUBRESOURCE_DATA d3dSubresource = { data, width * texelSize, width * height * texelSize };
-    D3DDeviceHelper::FillTexture( *static_cast< D3DCommandList* >( &commandList ), *this, *resource, &d3dSubresource, 1, 0 );
+    D3DDeviceHelper::FillTexture( *static_cast< D3DCommandList* >( commandList ), *this, *resource, &d3dSubresource, 1, 0 );
   }
 
   return resource;
 }
 
-eastl::unique_ptr< Resource > D3DDevice::Create2DTexture( CommandList& commandList, int width, int height, const void* data, int dataSize, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName )
+eastl::unique_ptr< Resource > D3DDevice::Create2DTexture( CommandList* commandList, int width, int height, const void* data, int dataSize, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName )
 {
-  auto resource = CreateTexture( commandList, width, height, 1, 1, format, samples, sampleQuality, renderable, slot, uavSlot, mipLevels, debugName );
+  auto resource = CreateTexture( commandList, width, height, 1, 1, format, samples, sampleQuality, renderable, slot, uavSlot, mipLevels, debugName, false );
+
+  assert( !data || commandList );
 
   if ( data )
   {
@@ -389,17 +396,22 @@ eastl::unique_ptr< Resource > D3DDevice::Create2DTexture( CommandList& commandLi
 
     assert( data8 - data8Base == dataSize );
 
-    D3DDeviceHelper::FillTexture( *static_cast<D3DCommandList*>( &commandList ), *this, *resource, d3dSubresources, mipLevels, 0 );
+    D3DDeviceHelper::FillTexture( *static_cast< D3DCommandList* >( commandList ), *this, *resource, d3dSubresources, mipLevels, 0 );
   }
 
   return resource;
 }
 
-eastl::unique_ptr<Resource> D3DDevice::CreateCubeTexture( CommandList& commandList, int width, const void* data, int dataSize, PixelFormat format, bool renderable, int slot, eastl::optional<int> uavSlot, bool mipLevels, const wchar_t* debugName )
+eastl::unique_ptr< Resource > D3DDevice::CreateCubeTexture( CommandList* commandList, int width, const void* data, int dataSize, PixelFormat format, bool renderable, int slot, eastl::optional<int> uavSlot, bool mipLevels, const wchar_t* debugName )
 {
   assert( !data && "D3DDevice::CreateCubeTexture doesn't support initial data yet!" );
 
-  return CreateTexture( commandList, width, width, 1, 6, format, 1, 0, renderable, slot, uavSlot, mipLevels, debugName );
+  return CreateTexture( commandList, width, width, 1, 6, format, 1, 0, renderable, slot, uavSlot, mipLevels, debugName, false );
+}
+
+eastl::unique_ptr< Resource > D3DDevice::CreateReserved2DTexture( int width, int height, PixelFormat format, int slot, bool mipLevels, const wchar_t* debugName )
+{
+  return CreateTexture( nullptr, width, height, 1, 1, format, 1, 0, false, slot, eastl::nullopt, mipLevels, debugName, true );
 }
 
 eastl::unique_ptr<ComputeShader> D3DDevice::CreateComputeShader( const void* shaderData, int shaderSize, const wchar_t* debugName )
@@ -407,9 +419,23 @@ eastl::unique_ptr<ComputeShader> D3DDevice::CreateComputeShader( const void* sha
   return eastl::unique_ptr< ComputeShader >( new D3DComputeShader( *this, shaderData, shaderSize, debugName ) );
 }
 
+eastl::unique_ptr< MemoryHeap > D3DDevice::CreateMemoryHeap( uint64_t size, const wchar_t* debugName )
+{
+  return eastl::unique_ptr< MemoryHeap >( new D3DMemoryHeap( *this, size, debugName ) );
+}
+
 eastl::unique_ptr<GPUTimeQuery> D3DDevice::CreateGPUTimeQuery()
 {
   return eastl::unique_ptr< GPUTimeQuery >( new D3DGPUTimeQuery( *this ) );
+}
+
+void D3DDevice::PreallocateTiles( CommandQueue& directQueue )
+{
+  tileHeaps[ PixelFormat::BC1UN ]->prealloc( *this, directQueue, 256 );
+  tileHeaps[ PixelFormat::BC2UN ]->prealloc( *this, directQueue, 256 );
+  tileHeaps[ PixelFormat::BC3UN ]->prealloc( *this, directQueue, 256 );
+  tileHeaps[ PixelFormat::BC4UN ]->prealloc( *this, directQueue, 256 );
+  tileHeaps[ PixelFormat::BC5UN ]->prealloc( *this, directQueue, 256 );
 }
 
 eastl::unique_ptr<RTShaders> D3DDevice::CreateRTShaders( CommandList& commandList, const eastl::vector<uint8_t>& rootSignatureShaderBinary, const eastl::vector<uint8_t>& shaderBinary, const wchar_t* rayGenEntryName, const wchar_t* missEntryName, const wchar_t* anyHitEntryName, const wchar_t* closestHitEntryName, int attributeSize, int payloadSize, int maxRecursionDepth )
@@ -484,115 +510,77 @@ eastl::unique_ptr< Resource > D3DDevice::LoadCubeTexture( CommandList& commandLi
   return resource;
 }
 
-eastl::unique_ptr< Resource > D3DDevice::Stream2DTexture( CommandQueue& commandQueue
+eastl::unique_ptr< Resource > D3DDevice::Stream2DTexture( CommandQueue& directQueue
                                                         , CommandList& commandList
                                                         , const TFFHeader& tffHeader
                                                         , eastl::unique_ptr< FileLoaderFile >&& fileHandle
                                                         , int slot
                                                         , const wchar_t* debugName )
 {
-  D3DCommandQueue& d3dCommandQueue = static_cast< D3DCommandQueue& >( commandQueue );
-  D3DCommandList&  d3dCommandList  = static_cast< D3DCommandList&  >( commandList  );
+  #if TEXTURE_STREAMING_MODE == TEXTURE_STREAMING_OFF
+    return nullptr;
+  #else
+    eastl::wstring debugNameFormatter;
 
-  CreateStreamingReferenceTextures( commandList );
- 
-  PixelFormat pixelFormat = PixelFormat::Unknown;
-  switch ( tffHeader.pixelFormat )
-  {
-    case TFFHeader::PixelFormat::BC1: pixelFormat = PixelFormat::BC1UN; break;
-    case TFFHeader::PixelFormat::BC2: pixelFormat = PixelFormat::BC2UN; break;
-    case TFFHeader::PixelFormat::BC3: pixelFormat = PixelFormat::BC3UN; break;
-    case TFFHeader::PixelFormat::BC4: pixelFormat = PixelFormat::BC4UN; break;
-    case TFFHeader::PixelFormat::BC5: pixelFormat = PixelFormat::BC5UN; break;
-    default: return nullptr;
-  }
+    PixelFormat pixelFormat = PixelFormat::Unknown;
+    switch ( tffHeader.pixelFormat )
+    {
+      case TFFHeader::PixelFormat::BC1: pixelFormat = PixelFormat::BC1UN; break;
+      case TFFHeader::PixelFormat::BC2: pixelFormat = PixelFormat::BC2UN; break;
+      case TFFHeader::PixelFormat::BC3: pixelFormat = PixelFormat::BC3UN; break;
+      case TFFHeader::PixelFormat::BC4: pixelFormat = PixelFormat::BC4UN; break;
+      case TFFHeader::PixelFormat::BC5: pixelFormat = PixelFormat::BC5UN; break;
+      default: return nullptr;
+    }
 
-  eastl::wstring debugNameFormatter;
+    auto texture      = CreateReserved2DTexture( tffHeader.width, tffHeader.height, pixelFormat, slot, true, debugName );
+    auto tiledTexture = static_cast< D3DResource* >( texture.get() );
 
-  auto mipTailTexture = CreateTexture( commandList
-                                     , TFFHeader::tileSize
-                                     , TFFHeader::tileSize
-                                     , 1
-                                     , 1
-                                     , pixelFormat
-                                     , 1
-                                     , 0
-                                     , false
-                                     , slot + Scene2DResourceCount * 2
-                                     , eastl::nullopt
-                                     , true
-                                     , debugNameFormatter.sprintf( L"%s_MipTail", debugName ).data() );
+    D3D12_PACKED_MIP_INFO    packedMipInfo;
+    D3D12_TILE_SHAPE         tileShape;
+    D3D12_SUBRESOURCE_TILING subresourceTiling;
+    d3dDevice->GetResourceTiling( tiledTexture->GetD3DResource(), nullptr, &packedMipInfo, &tileShape, nullptr, 0, &subresourceTiling);
 
-  auto indexWidth  = tffHeader.width  / TFFHeader::tileSize;
-  auto indexHeight = tffHeader.height / TFFHeader::tileSize;
+    // We only handle this case for now.
+    assert( packedMipInfo.NumTilesForPackedMips == 1 );
+    assert( packedMipInfo.NumPackedMips == tffHeader.packedMipCount );
 
-  eastl::array< uint32_t, 16 * 1024 > startingIndexData;
-  auto writeCursor = startingIndexData.begin();
-  auto fiw = indexWidth;
-  auto fih = indexHeight;
-  for ( ; fiw > 1 || fih > 1; fiw /= 2, fih /= 2 )
-  {
-    auto mipSize = eastl::max( fiw, 1U ) * eastl::max( fih, 1U );
-    eastl::fill_n( writeCursor, mipSize, 0xFFFEFFFFU );
-    writeCursor += mipSize;
-  }
+    fileHandle->LoadPackedMipTail( *this
+                                  , commandList
+                                  , *texture
+                                  , tffHeader
+                                  , CalcBlockSize( pixelFormat ) );
 
-  eastl::fill_n( writeCursor, 1, 0xFFFF0000 | ( tffHeader.mipCount - tffHeader.packedMipCount ) );
-  ++writeCursor;
+    auto feedbackTexture = CreateTexture( &commandList
+                                        , tffHeader.width  / tffHeader.tileWidth
+                                        , tffHeader.height / tffHeader.tileHeight
+                                        , 1
+                                        , 1
+                                        , PixelFormat::R32U
+                                        , 1
+                                        , 0
+                                        , false
+                                        , -1
+                                        , slot + Scene2DResourceCount
+                                        , false
+                                        , debugNameFormatter.sprintf( L"%s_Feedback", debugName ).data()
+                                        , false );
 
-  auto indexTexture = Create2DTexture( commandList
-                                     , indexWidth
-                                     , indexHeight
-                                     , startingIndexData.data()
-                                     , int( eastl::distance( startingIndexData.begin(), writeCursor ) * sizeof( uint32_t ) )
-                                     , PixelFormat::RG1616U
-                                     , 1
-                                     , 0
-                                     , false
-                                     , slot
-                                     , eastl::nullopt
-                                     , true
-                                     , debugName );
+    UINT clear[ 4 ] = { 255, 255, 255, 255 };
+    commandList.ClearUnorderedAccess( *feedbackTexture, clear );
 
-  fileHandle->LoadPackedMipTail( *this
-                               , commandList
-                               , *mipTailTexture
-                               , sizeof( TFFHeader )
-                               , tffHeader.packedMipDataSize
-                               , tffHeader.packedMipCount
-                               , eastl::max( ( tffHeader.width  >> ( tffHeader.mipCount - tffHeader.packedMipCount ) ) / 4, 1U )
-                               , eastl::max( ( tffHeader.height >> ( tffHeader.mipCount - tffHeader.packedMipCount ) ) / 4, 1U )
-                               , CalcBlockSize( mipTailTexture->GetTexturePixelFormat() ) );
+    auto& heap         = tileHeaps[ pixelFormat ];
+    auto  mipTailAlloc = heap->alloc( *this, directQueue );
 
-  auto feedbackTexture = CreateTexture( commandList
-                                      , tffHeader.width  / TFFHeader::tileSize
-                                      , tffHeader.height / TFFHeader::tileSize
-                                      , 1
-                                      , 1
-                                      , PixelFormat::R32U
-                                      , 1
-                                      , 0
-                                      , false
-                                      , -1
-                                      , slot + Scene2DResourceCount
-                                      , false
-                                      , debugNameFormatter.sprintf( L"%s_Feedback", debugName ).data() );
+    directQueue.UpdateTileMapping( *texture, 0, 0, tffHeader.mipCount - tffHeader.packedMipCount, mipTailAlloc.memoryHeap, mipTailAlloc.y * TileCount + mipTailAlloc.x );
 
-  UINT clear[ 4 ] = { 255, 255, 255, 255 };
-  d3dCommandList.ClearUnorderedAccess( *feedbackTexture, clear );
+    tiledTexture->SetupForStreaming( eastl::move( feedbackTexture )
+                                   , eastl::move( fileHandle )
+                                   , int( sizeof( TFFHeader ) + tffHeader.packedMipDataSize )
+                                   , [&]( Device& device, CommandList& commandList ) { return heap->alloc( device, directQueue ); } );
 
-  auto& heap = tileHeaps[ pixelFormat ];
-
-  return eastl::unique_ptr< Resource >( new D3DResource( *this
-                                                       , eastl::move( mipTailTexture )
-                                                       , eastl::move( indexTexture )
-                                                       , eastl::move( feedbackTexture )
-                                                       , eastl::move( fileHandle )
-                                                       , int( sizeof( TFFHeader ) + tffHeader.packedMipDataSize )
-                                                       , [&]( Device& device, CommandList& commandList ) { return heap->alloc( device, commandList ); }
-                                                       , tffHeader.mipCount
-                                                       , tffHeader.width
-                                                       , tffHeader.height ) );
+    return texture;
+  #endif
 }
 
 eastl::unique_ptr< Resource > D3DDevice::AllocateUploadBuffer( int dataSize, const wchar_t* resourceName )
@@ -740,8 +728,10 @@ eastl::wstring D3DDevice::GetMemoryInfo( bool includeIndividualAllocations )
   return result;
 }
 
-eastl::unique_ptr< D3DResource > D3DDevice::CreateTexture( CommandList& commandList, int width, int height, int depth, int slices, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName, bool reserved )
+eastl::unique_ptr< D3DResource > D3DDevice::CreateTexture( CommandList* commandList, int width, int height, int depth, int slices, PixelFormat format, int samples, int sampleQuality, bool renderable, int slot, eastl::optional< int > uavSlot, bool mipLevels, const wchar_t* debugName, bool reserved )
 {
+  assert( !uavSlot.has_value() || commandList );
+
   bool isVolumeTexture = depth  > 1;
   bool isCubeTexture   = slices > 1;
 
@@ -783,7 +773,7 @@ eastl::unique_ptr< D3DResource > D3DDevice::CreateTexture( CommandList& commandL
   desc.Format             = Convert( format );
   desc.SampleDesc.Count   = samples;
   desc.SampleDesc.Quality = sampleQuality;
-  desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+  desc.Layout             = reserved ? D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE : D3D12_TEXTURE_LAYOUT_UNKNOWN;
   desc.Flags              = flags;
 
   D3D12_CLEAR_VALUE optimizedClearValue = {};
@@ -806,9 +796,20 @@ eastl::unique_ptr< D3DResource > D3DDevice::CreateTexture( CommandList& commandL
     optimizedClearValue.Color[ 3 ] = 0;
   }
 
-  bool committed = ( renderable || IsDepthFormat( format ) ) && width >= 1024 && height >= 1024;
+  AllocatedResource allocatedResource;
 
-  auto allocatedResource = AllocateResource( HeapType::Default, desc, initialState, IsDepthFormat( format ) || renderable ? &optimizedClearValue : nullptr, committed );
+  if ( reserved )
+  {
+    CComPtr< ID3D12Resource > resource;
+    d3dDevice->CreateReservedResource( &desc, Convert( initialState ), nullptr, IID_PPV_ARGS( &resource ) );
+    allocatedResource = AllocatedResource( resource );
+  }
+  else
+  {
+    bool committed = ( renderable || IsDepthFormat( format ) ) && width >= 1024 && height >= 1024;
+    allocatedResource = AllocateResource( HeapType::Default, desc, initialState, IsDepthFormat( format ) || renderable ? &optimizedClearValue : nullptr, committed );
+  }
+
   if ( allocatedResource )
     allocatedResource->SetName( debugName );
 
@@ -854,36 +855,8 @@ eastl::unique_ptr< D3DResource > D3DDevice::CreateTexture( CommandList& commandL
     barrier.Type                 = D3D12_RESOURCE_BARRIER_TYPE_UAV;
     barrier.Transition.pResource = resource->GetD3DResource();
 
-    static_cast< D3DCommandList* >( &commandList )->GetD3DGraphicsCommandList()->ResourceBarrier( 1, &barrier );
+    static_cast< D3DCommandList* >( commandList )->GetD3DGraphicsCommandList()->ResourceBarrier( 1, &barrier );
   }
 
   return resource;
-}
-
-void D3DDevice::CreateStreamingReferenceTextures( CommandList& commandList )
-{
-  if ( !referenceTextures.empty() )
-    return;
-
-  for ( int size = 0; size < Engine2DReferenceTextureCount; ++size )
-  {
-    referenceTextures.emplace_back( CreateTexture( commandList
-                                                 , 4 << size
-                                                 , 4 << size
-                                                 , 1
-                                                 , 1
-                                                 , PixelFormat::BC1UN
-                                                 , 1
-                                                 , 0
-                                                 , false
-                                                 , Engine2DReferenceTextureBaseSlot + size
-                                                 , eastl::nullopt
-                                                 , true
-                                                 , L"RefTex"
-                                                 , true ) );
-    commandList.ChangeResourceState( *referenceTextures.back(), ResourceStateBits::PixelShaderInput | ResourceStateBits::NonPixelShaderInput );
-  }
-
-  for ( auto pixelFormat : { PixelFormat::BC1UN, PixelFormat::BC2UN, PixelFormat::BC3UN, PixelFormat::BC4UN, PixelFormat::BC5UN } )
-    tileHeaps[ pixelFormat ].reset( new D3DTileHeap( *this, pixelFormat, L"D3DTileHeap" ) );
 }

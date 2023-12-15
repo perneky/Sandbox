@@ -18,7 +18,7 @@ namespace nrd
 class NVDenoiser : public Denoiser
 {
 public:
-  NVDenoiser( Device& device, CommandQueue& commandQueue, CommandList& commandList, int width, int height );
+  NVDenoiser( Device& device, CommandQueue& directQueue, CommandList& commandList, int width, int height );
   ~NVDenoiser();
 
   const XMFLOAT4& GetHitDistanceParams() const override;

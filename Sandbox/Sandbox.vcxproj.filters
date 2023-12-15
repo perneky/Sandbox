@@ -167,6 +167,9 @@
     <ClCompile Include="Render\D3D12\NVDenoiser.cpp">
       <Filter>Render\D3D12</Filter>
     </ClCompile>
+    <ClCompile Include="Render\D3D12\D3DMemoryHeap.cpp">
+      <Filter>Render\D3D12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCH\PCH.h">
@@ -397,6 +400,15 @@
     </ClInclude>
     <ClInclude Include="Render\D3D12\NVDenoiser.h">
       <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\D3D12\D3DMemoryHeap.h">
+      <Filter>Render\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\MemoryHeap.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\AsyncJobThread.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

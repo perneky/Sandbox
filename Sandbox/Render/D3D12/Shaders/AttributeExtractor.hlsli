@@ -10,12 +10,10 @@
                          "DescriptorTable( SRV( t3 ) )," \
                          "DescriptorTable( SRV( t4 ) )," \
                          "DescriptorTable( SRV( t5 ) )," \
-                         "DescriptorTable( SRV( t6,  numDescriptors = " SceneBufferResourceCountStr  ", space = 6"  BigRangeFlags " ) )," \
-                         "DescriptorTable( SRV( t7,  numDescriptors = " SceneBufferResourceCountStr  ", space = 7"  BigRangeFlags " ) )," \
-                         "DescriptorTable( SRV( t8,  numDescriptors = " Scene2DResourceCountStr      ", space = 8"  BigRangeFlags " ) )," \
-                         "DescriptorTable( SRV( t9,  numDescriptors = " Scene2DResourceCountStr      ", space = 9"  BigRangeFlags " ) )," \
-                         "DescriptorTable( SRV( t10, numDescriptors = " Engine2DTileTexturesCountStr ", space = 10" BigRangeFlags " ) )," \
-                         "DescriptorTable( SRV( t11, numDescriptors = 4,                               space = 11 ) )" \
+                         "DescriptorTable( SRV( t6, numDescriptors = " SceneBufferResourceCountStr  ", space = 6"  BigRangeFlags " ) )," \
+                         "DescriptorTable( SRV( t7, numDescriptors = " SceneBufferResourceCountStr  ", space = 7"  BigRangeFlags " ) )," \
+                         "DescriptorTable( SRV( t8, numDescriptors = " Scene2DResourceCountStr      ", space = 8"  BigRangeFlags " ) )," \
+                         "DescriptorTable( SRV( t9, numDescriptors = 4,                                space = 9 ) )" \
 
 cbuffer cb0 : register( b0 )
 {
@@ -35,12 +33,6 @@ Texture2D< uint2 > geometryIdsTexture : register( t5 );
 StructuredBuffer< uint >         meshIndices[]  : register( t6, space6 );
 StructuredBuffer< VertexFormat > meshVertices[] : register( t7, space7 );
 
-#if ENABLE_TEXTURE_STREAMING
-  Texture2D< uint2 > scene2DTextures[]        : register( t8, space8 );
-  Texture2D< half4 > scene2DMipTailTextures[] : register( t9, space9 );
-  Texture2D< half4 > engine2DTileTextures[]   : register( t10, space10 );
-#else
-  Texture2D< half4 > scene2DTextures[] : register( t8, space8 );
-#endif
+Texture2D< half4 > scene2DTextures[] : register( t8, space8 );
 
-StructuredBuffer< IndirectRender > indirectBufers[] : register( t11, space11 );
+StructuredBuffer< IndirectRender > indirectBufers[] : register( t9, space9 );

@@ -44,9 +44,10 @@ public:
   static void           DeleteInstance();
 
   void UpdateBeforeFrame( CommandList& commandList );
-  TextureStreamer::UpdateResult UpdateAfterFrame( CommandList& commandList, CommandQueueType commandQueueType, uint64_t fence );
+  TextureStreamer::UpdateResult UpdateAfterFrame( CommandList& commandList, uint64_t fence );
 
   void RenderDebugTexture( CommandList& commandList, int texIndex, int screenWidth, int screenHeight, DebugOutput debugOutput );
+  void RenderDebugHeapTexture( CommandList& commandList, int texIndex, int screenWidth, int screenHeight, DebugOutput debugOutput );
 
   void IdleGPU();
 
